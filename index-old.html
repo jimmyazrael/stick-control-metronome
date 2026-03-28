@@ -1,0 +1,1509 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <title>Stick Control Metronome</title>
+  <link rel="icon" href="favicon.ico" type="image/x-icon">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      font-family: Verdana, Geneva, Tahoma, sans-serif;
+      margin: 0px;
+      display: flex;
+      height: 100vh;
+      align-items: center;
+      background-color: limegreen;
+    }
+
+    html.dark body {
+      background-color: #1a1a1a;
+      color: #e0e0e0;
+    }
+
+    body.last {
+      animation: blink 0.75s linear infinite;
+    }
+
+    @keyframes blink {
+      0% {
+        background-color: white;
+      }
+
+      50% {
+        background-color: red;
+      }
+
+      100% {
+        background-color: white;
+      }
+    }
+
+    html.dark body.last {
+      animation: blink-dark 0.75s linear infinite;
+    }
+
+    @keyframes blink-dark {
+      0% {
+        background-color: #2a2a2a;
+      }
+
+      50% {
+        background-color: #8b2020;
+      }
+
+      100% {
+        background-color: #2a2a2a;
+      }
+    }
+
+    #container {
+      width: fit-content;
+      margin: 0 auto;
+    }
+
+    .dots {
+      display: flex;
+      min-width: 900px;
+      height: 200px;
+    }
+
+    .dot {
+      width: 125px;
+      height: 125px;
+      border-radius: 50%;
+      border: 5px solid green;
+      display: grid;
+      align-items: center;
+      text-align: center;
+      font-size: 2em;
+      margin: 20px;
+      color: lime;
+    }
+
+    html.dark .dot {
+      border-color: #2d5a2d;
+      color: #6b9e6b;
+    }
+
+    .current {
+      background-color: lightgreen;
+      color: darkgreen;
+    }
+
+    html.dark .current {
+      background-color: #2d5a2d;
+      color: #b8e0b8;
+    }
+
+    #progress-repetitions,
+    #progress-bars {
+      font-size: 5em;
+    }
+
+    #controls {
+      display: flex;
+      flex-wrap: wrap;
+    }
+
+    #controls>div:last-child {
+      width: 100%;
+    }
+
+    #fields {
+      display: inline;
+      border: none;
+    }
+
+    #fields div {
+      display: inline-block;
+    }
+
+    #fields label {
+      display: block;
+    }
+
+    #fields input,
+    #fields select {
+      box-sizing: border-box;
+      vertical-align: top;
+      height: 32px;
+      padding: 5px;
+    }
+
+    html.dark #fields input,
+    html.dark #fields select {
+      background-color: #2a2a2a;
+      color: #e0e0e0;
+      border: 1px solid #444;
+    }
+
+    #buttons {
+      align-content: center;
+    }
+
+    #buttons button {
+      height: 32px;
+    }
+
+    #elapsed-time {
+      position: absolute;
+      top: 0;
+      right: 0;
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+      font-weight: bold;
+      font-size: 200%;
+      min-width: 3ch;
+    }
+
+    html.dark #elapsed-time {
+      color: #e0e0e0;
+    }
+
+    #estimated-runtime-wrap {
+      display: flex;
+      align-items: center;
+      gap: 0.5em;
+    }
+
+    #estimated-runtime {
+      font-variant-numeric: tabular-nums;
+      min-width: 3ch;
+    }
+
+    html.dark #estimated-runtime {
+      color: #e0e0e0;
+    }
+
+    html.dark #buttons button {
+      background-color: #2a2a2a;
+      color: #e0e0e0;
+      border: 1px solid #444;
+    }
+
+    html.dark #buttons button:hover {
+      background-color: #3a3a3a;
+    }
+
+    #progress-exercise {
+      font-size: 3em;
+    }
+
+    #progress-repetition,
+    #progress-bar {
+      font-size: 2em;
+    }
+
+    #preset-container {
+      display: none !important;
+    }
+
+    #metronome-header {
+      position: relative;
+      display: block;
+      width: 100%;
+    }
+
+    #metronome-header .label {
+      color: lightgreen;
+      cursor: pointer;
+      background: none;
+      border: none;
+      font: inherit;
+      padding: 0.25em;
+    }
+
+    html.dark #metronome-header .label {
+      color: #7cce7c;
+    }
+
+    #metronome-header:hover .label,
+    #metronome-header:focus-within .label {
+      text-decoration: underline;
+    }
+
+    #metronome-header:hover .popup,
+    #metronome-header:focus-within .popup,
+    #metronome-header .popup.popup-visible {
+      visibility: visible;
+      filter: drop-shadow(8px 8px 10px grey);
+    }
+
+    html.dark #metronome-header:hover .popup,
+    html.dark #metronome-header:focus-within .popup,
+    html.dark #metronome-header .popup.popup-visible {
+      filter: drop-shadow(8px 8px 12px rgba(0, 0, 0, 0.8));
+    }
+
+    .popup {
+      border-radius: 10px;
+      visibility: hidden;
+      position: absolute;
+      z-index: 1;
+      background-color: whitesmoke;
+      padding: 10px;
+      border: 1px solid black;
+      width: 40vw;
+      height: 50vh;
+      overflow-y: scroll;
+    }
+
+    html.dark .popup {
+      background-color: #2a2a2a;
+      color: #e0e0e0;
+      border-color: #444;
+    }
+
+    .popup a {
+      color: inherit;
+    }
+
+    html.dark .popup a {
+      color: #7cce7c;
+    }
+
+    .popup th,
+    .popup td {
+      text-align: left;
+      padding: 2px 5px 2px 5px;
+    }
+
+    .fetch-error {
+      color: darkred;
+      background: #ffe0e0;
+      padding: 0.5rem 1rem;
+      margin: 0.5rem 0;
+      border-radius: 4px;
+    }
+
+    html.dark .fetch-error {
+      color: #f0a0a0;
+      background: #4a2020;
+      border: 1px solid #6a3030;
+    }
+
+    .export-url-container {
+      margin: 0.5rem 0;
+      padding: 0.5rem;
+      background: #f5f5f5;
+      border-radius: 4px;
+      border: 1px solid #ccc;
+    }
+
+    html.dark .export-url-container {
+      background: #2a2a2a;
+      border-color: #444;
+      color: #e0e0e0;
+    }
+
+    .export-url-container label {
+      display: block;
+      margin-bottom: 0.25rem;
+    }
+
+    .export-url-row {
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
+    }
+
+    .export-url-row input {
+      flex: 1;
+      min-width: 0;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="container">
+    <div id="metronome-header">
+      <button type="button" class="label" aria-label="Help" aria-expanded="false"
+        aria-controls="help-popup">(?)</button>
+      <div id="help-popup" class="popup">
+        <h2>About Stick Control Metronome</h2>
+        <p>
+          This is a simple metronome and timer app I wrote to help me work through <a
+            href="https://www.stonepercussionbooks.com/stick-control.html">Stick Control</a> by George Stone.
+        </p>
+        <p>
+          Note that the exercises in the book are notated in cut time (2/2). Since I want to use this tool for other
+          practice exercises, I have chosen to measure bars in terms of quarter notes instead of half-notes which is a
+          little more convenient for practising along to music in 3/4, for example. Similarly,
+          tempo is defined here in terms of quarter notes per minute.
+        </p>
+        <p>
+          &ldquo;Preroll&rdquo; refers to one or more pickup bars that run immediately before the first exercise in
+          order for the user to gauge the correct tempo to play at. The page will flash an angry red colour when you hit
+          the last bar of the last repetition of each exercise in order to alert you that the next exercise is coming
+          up.
+        </p>
+        <p>
+          <a href="https://github.com/rcook/stick-control-metronome">Source code on GitHub</a>
+        </p>
+        <p>
+          Written by <a href="https://blog.rcook.org/">Richard Cook</a>
+        </p>
+        <h3>Patterns</h3>
+        <p>
+          The <em>pattern</em> field defines the pattern of accents of the metronome clicks. This will be a string whose
+          length is <em>beats &times; subdivisions</em> where each character represents the click type to generate at
+          the corresponding step:
+        </p>
+        <table>
+          <thead>
+            <tr>
+              <th>Character</th>
+              <th>Sound</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>A</td>
+              <td>Strong accent</td>
+            </tr>
+            <tr>
+              <td>B</td>
+              <td>Weak accent</td>
+            </tr>
+            <tr>
+              <td>C</td>
+              <td>No accent</td>
+            </tr>
+            <tr>
+              <td>D</td>
+              <td>Silent (no click)</td>
+            </tr>
+          </tbody>
+        </table>
+        <p>
+          The pattern will be truncated and padded to the correct number of steps and any unsupported characters will be
+          ignored and replaced with silence.
+        </p>
+        <h3>Keyboard</h3>
+        <p>
+          <em>Space</em> can be pressed to start and stop the metronome. If you stop the metronome beyond the first
+          exercise, you will be presented with a prompt allowing you to stop or resume the metronome and timer from the
+          beginning of the current exercise with a fresh run of preroll bars&mdash;this is useful when your practice
+          routine is interrupted by a phone call or a dog in desperate need of a belly rub.
+        </p>
+      </div>
+      <span id="elapsed-time" aria-live="polite">&ndash;&ndash;&ndash;</span>
+    </div>
+    <div id="indicators">
+      <div id="progress-exercise" role="status" aria-live="polite">&ndash;&ndash;&ndash;</div>
+      <div id="progress-repetition" role="status" aria-live="polite">&ndash;&ndash;&ndash;</div>
+      <div id="progress-bar" role="status" aria-live="polite">&ndash;&ndash;&ndash;</div>
+      <div id="dots" class="dots"></div>
+    </div>
+    <div id="fetch-error" class="fetch-error" role="alert" hidden></div>
+    <div id="export-url-container" class="export-url-container" hidden>
+      <label for="export-url-input">Copy this link to import presets in another browser:</label>
+      <div class="export-url-row">
+        <input id="export-url-input" type="text" readonly>
+        <button type="button" id="export-url-copy">Copy</button>
+        <button type="button" id="export-url-close">Close</button>
+      </div>
+    </div>
+    <div id="controls">
+      <div id="buttons">
+        <button type="button" id="start-stop">Start</button>
+      </div>
+      <fieldset id="fields">
+        <div>
+          &#9833;=<select id="tempo" title="Tempo in quarter notes per minute"></select>
+          <label for="tempo">tempo</label>
+        </div>
+        <div>
+          <input id="start-exercise" type="number" min="1" max="100" step="1" title="Start exercise">
+          <label for="start-exercise">start</label>
+        </div>
+        <div>
+          <input id="exercises" type="number" min="1" max="100" step="1" title="Number of exercises">
+          <label for="exercises">exercises</label>
+        </div>
+        <div>
+          <select id="repetitions" title="Number of repetitions per exercise">
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="5">5</option>
+            <option value="10">10</option>
+            <option value="20">20</option>
+            <option value="50">50</option>
+          </select>
+          <label for="repetitions">reps</label>
+        </div>
+        <div>
+          <select id="bars" title="Number of bars per repetition"></select>
+          <label for="bars">bars</label>
+        </div>
+        <div>
+          <select id="beats" title="Beats (with subdivisions determines number of steps in pattern)"></select>
+          <label for="beats">beats</label>
+        </div>
+        <div>
+          <select id="subdivisions" title="Subdivisions (with beats determines number of steps in pattern)">
+            <option value="1">(None)</option>
+            <option value="2">8th note</option>
+            <option value="4">16th note</option>
+          </select>
+          <label for="subdivisions">subs</label>
+        </div>
+        <div>
+          <input id="pattern" type="text" title="Metronome pattern in REAPER-like format">
+          <label for="pattern">pattern</label>
+        </div>
+        <div>
+          <select id="preroll-bars" title="Number of preroll bars played before first exercise starts">
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="4">4</option>
+          </select>
+          <label for="preroll-bars">preroll</label>
+        </div>
+        <div id="preset-container">
+          <select id="preset" title="Presets"></select>
+          <label for="preset">presets</label>
+        </div>
+      </fieldset>
+      <div>
+        <input id="dark" type="checkbox" title="Use dark theme">
+        <label for="dark">dark</label>
+      </div>
+      <div id="estimated-runtime-wrap">
+        <span id="estimated-runtime-label">Estimated runtime:</span>
+        <span id="estimated-runtime" aria-labelledby="estimated-runtime-label"
+          role="status">&ndash;&ndash;&ndash;</span>
+      </div>
+    </div>
+  </div>
+</body>
+
+<script src="js/utils.js"></script>
+<script>
+  //<![CDATA[
+  "use strict";
+
+  const DATA_FILE_NAME = "data.json";
+
+  const SAVE_ID = -1;
+  const REMOVE_ID = -2;
+  const CLEAR_ID = -3;
+  const EXPORT_ID = -4;
+  const RESET_ID = -5;
+
+  const START_CAPTION = "Start";
+  const STOP_CAPTION = "Stop";
+
+  const BEEP_DURATION = 0.05;
+
+  const IDLE_HTML = "&ndash;&ndash;&ndash;";
+
+  const OSCILLATOR_PADDING = 0.01;
+
+  const SILENT_PARAM = "silent";
+  const IMPORT_PRESETS_PARAM = "import-presets";
+
+  const DEFAULT_TEMPO = 120;
+  const DEFAULT_START_EXERCISE = 1;
+  const DEFAULT_EXERCISES = 24;
+  const DEFAULT_REPETITIONS = 20;
+  const DEFAULT_BARS = 2;
+  const DEFAULT_BEATS = 4;
+  const DEFAULT_SUBDIVISIONS = 2;
+  const DEFAULT_PREROLL_BARS = 2;
+
+  const TEMPO_MIN = 50;
+  const TEMPO_MAX = 250;
+  const START_EXERCISE_MIN = 1;
+  const START_EXERCISE_MAX = 100;
+  const EXERCISES_MIN = 1;
+  const EXERCISES_MAX = 100;
+  const REPETITIONS_OPTIONS = [1, 2, 5, 10, 20, 50];
+  const BARS_OPTIONS = [1, 2, 3, 4];
+  const BEATS_MIN = 1;
+  const BEATS_MAX = 16;
+  const SUBDIVISIONS_OPTIONS = [1, 2, 4];
+  const PREROLL_BARS_OPTIONS = [1, 2, 3, 4];
+
+  const MAX_IMPORT_PRESETS_LENGTH = 1000;
+  const MAX_IMPORT_JSON_BYTES = 100000;
+
+  function h(s) {
+    return new Option(s).innerHTML;
+  }
+
+  class DecayingSawtoothClick {
+    #frequency
+    #volume
+
+    static Builder(frequency, volume) {
+      return new class {
+        constructor() { }
+
+        build(audioCtx) {
+          return new DecayingSawtoothClick(frequency, volume);
+        }
+      }
+    }
+
+    constructor(frequency, volume) {
+      this.#frequency = frequency;
+      this.#volume = volume;
+    }
+
+    generate(audioCtx, startTime) {
+      const endTime = startTime + BEEP_DURATION;
+
+      const oscillator = audioCtx.createOscillator();
+      oscillator.type = "sawtooth";
+      oscillator.frequency.setValueAtTime(this.#frequency, startTime);
+      oscillator.start(startTime);
+      oscillator.stop(endTime + OSCILLATOR_PADDING);
+
+      const gain = audioCtx.createGain();
+      gain.gain.setValueAtTime(this.#volume, startTime);
+      gain.gain.exponentialRampToValueAtTime(0.0001, endTime);
+
+      oscillator.connect(gain).connect(audioCtx.destination);
+    }
+  }
+
+  class FilteredWhiteNoiseClick {
+    static #buffers = {};
+    #buffer
+
+    static Builder() {
+      return new class {
+        constructor() { }
+
+        build(audioCtx) {
+          const buffer = FilteredWhiteNoiseClick.#getBuffer(audioCtx);
+          return new FilteredWhiteNoiseClick(buffer);
+        }
+      }
+    }
+
+    constructor(buffer) {
+      this.#buffer = buffer;
+    }
+
+    generate(audioCtx, startTime) {
+      const endTime = startTime + BEEP_DURATION;
+
+      const noise = audioCtx.createBufferSource();
+      noise.buffer = this.#buffer;
+      noise.start(startTime);
+      noise.stop(endTime);
+
+      const filter = audioCtx.createBiquadFilter();
+      filter.type = "highpass";
+      filter.frequency.setValueAtTime(2000, audioCtx.currentTime);
+
+      const gain = audioCtx.createGain();
+      gain.gain.setValueAtTime(0, startTime);
+      gain.gain.linearRampToValueAtTime(1, startTime + 0.001);
+      gain.gain.exponentialRampToValueAtTime(0.001, endTime);
+
+      noise.connect(filter).connect(gain).connect(audioCtx.destination);
+    }
+
+    static #getBuffer(audioCtx) {
+      const temp = FilteredWhiteNoiseClick.#buffers[audioCtx];
+      if (temp !== undefined) { return temp; }
+
+      const bufferLen = audioCtx.sampleRate * 0.5;
+      const buffer = audioCtx.createBuffer(1, bufferLen, audioCtx.sampleRate);
+      const data = buffer.getChannelData(0);
+      for (let i = 0; i < bufferLen; ++i) {
+        data[i] = Math.random() * 2 - 1;
+      }
+
+      FilteredWhiteNoiseClick.#buffers[audioCtx] = buffer;
+      return buffer;
+    }
+  }
+
+  class Queue {
+    #notes = [];
+
+    constructor() { }
+
+    get isEmpty() { return this.#notes.length === 0; }
+
+    enqueue(note) {
+      this.#notes.push(note);
+    }
+
+    dequeue() {
+      if (this.isEmpty) {
+        return null;
+      }
+
+      return this.#notes.shift();
+    }
+
+    peek() {
+      if (this.isEmpty) {
+        return null;
+      }
+      return this.#notes[0];
+    }
+
+    clear() {
+      this.#notes.length = 0;
+    }
+  }
+
+  class Beeper {
+    #audioCtx
+    #tempo
+    #beats
+    #subdivisions
+    #pattern
+    #queue
+    #interval
+    #lookahead
+    #stepInterval
+    #nextStepTime = null;
+    #step = null;
+    #intervalId = null;
+    #currentBar = null;
+    #clicks
+
+    constructor(options) {
+      this.#audioCtx = options.audioCtx;
+      this.#tempo = options.tempo;
+      this.#beats = options.beats;
+      this.#subdivisions = options.subdivisions;
+      this.#pattern = options.pattern;
+      this.#queue = options.queue;
+      this.#interval = Object.hasOwn(options, "interval") ? options.interval : 30;
+      this.#lookahead = Object.hasOwn(options, "lookahead") ? options.lookahead : 0.1;
+      this.#stepInterval = 60 / this.#tempo / this.#subdivisions;
+      this.#clicks = Object.keys(options.clicks).reduce((acc, k) => {
+        const factory = options.clicks[k];
+        const click = factory ? factory.build(this.#audioCtx) : null;
+        acc[k] = click;
+        return acc;
+      }, {});
+    }
+
+    start() {
+      this.stop();
+      this.#nextStepTime = this.#audioCtx.currentTime;
+      this.#step = 0;
+      this.#currentBar = 0;
+      this.#scheduleBeeps();
+      this.#intervalId = setInterval(() => { this.#scheduleBeeps() }, this.#interval);
+    }
+
+    stop() {
+      if (this.#intervalId) {
+        clearInterval(this.#intervalId);
+        this.#intervalId = null;
+      }
+    }
+
+    #scheduleBeeps() {
+      const now = this.#audioCtx.currentTime;
+
+      // Advance playhead to "now" without scheduling: avoids scheduling past events which would play as a burst
+      while (this.#nextStepTime < now) {
+        this.#advanceStep();
+      }
+
+      while (this.#nextStepTime < now + this.#lookahead) {
+        // Schedule beeps and UI notes for the next lookahead window.
+        this.#scheduleBeep();
+        this.#advanceStep();
+      }
+    }
+
+    #advanceStep() {
+      this.#nextStepTime += this.#stepInterval;
+      this.#step = (this.#step + 1) % this.#pattern.length;
+      if (this.#step === 0) {
+        ++this.#currentBar;
+      }
+    }
+
+    #scheduleBeep() {
+      if (this.#step % this.#subdivisions === 0) {
+        const beat = Math.trunc(this.#step / this.#subdivisions);
+        this.#queue.enqueue({
+          beat: beat,
+          beats: this.#beats,
+          time: this.#nextStepTime,
+          currentBar: this.#currentBar
+        });
+      }
+
+      const click = this.#clicks[this.#pattern[this.#step]];
+      if (click) {
+        click.generate(this.#audioCtx, this.#nextStepTime)
+      }
+    }
+  }
+
+  class Tracker {
+    #id
+    #audioCtx
+    #queue
+    #body
+    #progressExerciseDiv
+    #progressRepetitionDiv
+    #progressBarDiv
+    #dotsDiv
+    #exerciseOffset
+    #exercises
+    #repetitions
+    #bars
+    #prerollBars
+    #startExercise
+    #onFinished
+    #requestIds = [];
+    #beats = null;
+    #lastExercise = 0;
+
+    constructor(options) {
+      this.#id = options.id;
+      this.#audioCtx = options.audioCtx;
+      this.#queue = options.queue;
+      this.#body = options.body;
+      this.#progressExerciseDiv = options.progressExerciseDiv;
+      this.#progressRepetitionDiv = options.progressRepetitionDiv;
+      this.#progressBarDiv = options.progressBarDiv;
+      this.#dotsDiv = options.dotsDiv;
+      this.#exerciseOffset = options.exerciseOffset;
+      this.#exercises = options.exercises;
+      this.#repetitions = options.repetitions;
+      this.#bars = options.bars;
+      this.#prerollBars = options.prerollBars;
+      this.#startExercise = options.startExercise;
+      this.#onFinished = options.onFinished;
+    }
+
+    get lastExercise() { return this.#lastExercise; }
+
+    start() {
+      this.#requestIds.push(window.requestAnimationFrame(() => this.#refresh()));
+    }
+
+    stop() {
+      while (this.#requestIds.length > 0) {
+        const requestId = this.#requestIds.pop();
+        window.cancelAnimationFrame(requestId);
+      }
+    }
+
+    #refresh() {
+      const note = this.#nextNote();
+      if (note) {
+        if (!this.#update(note)) { return; }
+      }
+      this.#requestIds.push(window.requestAnimationFrame(() => this.#refresh()));
+    }
+
+    #nextNote() {
+      const time = this.#audioCtx.currentTime;
+      const note = this.#queue.peek();
+      if (!note || note.time > time) { return null; }
+      return this.#queue.dequeue();
+    }
+
+    #update(note) {
+      if (note.beats !== this.#beats) {
+        this.#beats = note.beats;
+        this.#dotsDiv.replaceChildren();
+        for (let i = 0; i < this.#beats; ++i) {
+          const element = document.createElement("div");
+          element.textContent = (i + 1).toString();
+          element.classList.add("dot");
+          this.#dotsDiv.appendChild(element);
+        }
+      }
+
+      [...this.#dotsDiv.children].forEach((e, i) => {
+        if (i === note.beat) {
+          e.classList.add("current");
+        } else {
+          e.classList.remove("current");
+        }
+      });
+
+      let isLastBarOfRepetition;
+      if (note.currentBar < this.#prerollBars) {
+        isLastBarOfRepetition = note.currentBar === this.#prerollBars - 1;
+        this.#progressExerciseDiv.innerHTML = `preroll &rarr; exercise ${this.#startExercise + this.#exerciseOffset + 1}`;
+        this.#progressRepetitionDiv.innerHTML = IDLE_HTML;
+        this.#progressBarDiv.innerHTML = formatProgress("bar", note.currentBar, this.#prerollBars, null, isLastBarOfRepetition);
+      } else {
+        const [exercise, repetition, bar] = this.#position(note.currentBar - this.#prerollBars);
+        isLastBarOfRepetition = repetition === this.#repetitions - 1 && bar === this.#bars - 1;
+        const isFinished = exercise >= this.#exercises;
+        this.#progressExerciseDiv.innerHTML = formatProgress("exercise", exercise, this.#exercises, this.#exerciseOffset);
+        this.#progressRepetitionDiv.innerHTML = formatProgress("rep", repetition, this.#repetitions);
+        this.#progressBarDiv.innerHTML = formatProgress("bar", bar, this.#bars, null, isLastBarOfRepetition);
+        this.#lastExercise = exercise;
+        if (isFinished) {
+          this.#onFinished();
+          return false;
+        }
+      }
+
+      if (isLastBarOfRepetition) {
+        this.#body.classList.add("last");
+      } else {
+        this.#body.classList.remove("last");
+      }
+
+      return true;
+    }
+
+    #position(overallBar) {
+      const barsInExercise = this.#bars * this.#repetitions;
+      const exercise = Math.trunc(overallBar / barsInExercise) + this.#startExercise;
+      const rem = overallBar % barsInExercise;
+      const repetition = Math.trunc(rem / this.#bars);
+      const bar = rem % this.#bars;
+      return [exercise, repetition, bar];
+    }
+  }
+
+  class DarkParam extends Param {
+    constructor(name, id) {
+      super(name, id);
+      this.element.addEventListener("change", () => this.#setValue(this.element.checked));
+      window.addEventListener("pageshow", () => this.init());
+    }
+
+    get value() { return this.element.checked; }
+
+    set value(value) {
+      this.#setValue(value);
+    }
+
+    parse(s) { return parseBool(s); }
+
+    init() {
+      let value;
+      try {
+        value = localStorage.getItem("dark") === "true";
+      } catch (_) {
+        value = false;
+      }
+      this.#setValue(value);
+    }
+
+    #setValue(value) {
+      this.element.checked = value;
+      try { localStorage.setItem("dark", value.toString()); } catch (_) { }
+      document.documentElement.classList.toggle("dark", value);
+    }
+  }
+
+  class IntParam extends InputOrSelectParam {
+    #min
+    #max
+    #defaultValue
+
+    constructor(name, id, min, max, defaultValue) {
+      super(name, id);
+      this.#min = min;
+      this.#max = max;
+      this.#defaultValue = defaultValue;
+    }
+
+    parse(s) { return parseNumber(s, this.#min, this.#max, this.#defaultValue); }
+  }
+
+  class ChoiceParam extends InputOrSelectParam {
+    #choices
+    #defaultValue
+
+    constructor(name, id, choices, defaultValue) {
+      super(name, id);
+      this.#choices = choices;
+      this.#defaultValue = defaultValue;
+    }
+
+    parse(s) { return parseOneOf(s, this.#choices, this.#defaultValue); }
+  }
+
+  class PatternParam extends InputOrSelectParam {
+    #defaultValue
+
+    constructor(name, id, defaultValue) {
+      super(name, id);
+      this.#defaultValue = defaultValue;
+    }
+
+    get value() { return this.element.value; }
+    set value(value) { super.value = value; }
+
+    parse(s) { return s ?? this.#defaultValue; }
+  }
+
+  class App {
+    #body
+    #progressExerciseDiv
+    #progressRepetitionDiv
+    #progressBarDiv
+    #dotsDiv
+    #startStopBtn
+    #elapsedTimeSpan
+    #elapsedTimerIntervalId = null
+    #elapsedTimerStart = 0
+    #estimatedRuntimeSpan
+    #fields
+    #darkParam
+    #tempoParam
+    #startExerciseParam
+    #exercisesParam
+    #repetitionsParam
+    #barsParam
+    #beatsParam
+    #subdivisionsParam
+    #patternParam
+    #prerollBarsParam
+    #presetContainerDiv
+    #presetSelect
+    #fetchErrorDiv
+    #exportUrlContainer
+    #exportUrlInput
+    #exportUrlCopyBtn
+    #exportUrlCloseBtn
+    #trackerId = 0;
+    #audioCtx = new AudioContext();
+    #queue = new Queue();
+    #startExercise = 0;
+    #beeper = null;
+    #tracker = null;
+    #presetParams
+    #urlParams
+    #otherParams
+    #clicks
+
+    constructor(document, window) {
+      function toSortedParams(params) {
+        return params.toSorted((a, b) => a.compareTo(b));
+      }
+
+      const params = new URLSearchParams(window.location.search);
+      const silent = params.get(SILENT_PARAM) === "1";
+      const importPresets = params.get(IMPORT_PRESETS_PARAM);
+
+      this.#body = document.body;
+      this.#progressExerciseDiv = document.getElementById("progress-exercise");
+      this.#progressRepetitionDiv = document.getElementById("progress-repetition");
+      this.#progressBarDiv = document.getElementById("progress-bar");
+      this.#dotsDiv = document.getElementById("dots");
+      this.#startStopBtn = document.getElementById("start-stop");
+      this.#elapsedTimeSpan = document.getElementById("elapsed-time");
+      this.#estimatedRuntimeSpan = document.getElementById("estimated-runtime");
+      this.#fields = document.getElementById("fields");
+      this.#darkParam = new DarkParam("dark", "dark");
+      this.#tempoParam = new IntParam("tempo", "tempo", TEMPO_MIN, TEMPO_MAX, DEFAULT_TEMPO);
+      this.#startExerciseParam = new IntParam("startExercise", "start-exercise", START_EXERCISE_MIN, START_EXERCISE_MAX, DEFAULT_START_EXERCISE)
+      this.#exercisesParam = new IntParam("exercises", "exercises", EXERCISES_MIN, EXERCISES_MAX, DEFAULT_EXERCISES);
+      this.#repetitionsParam = new ChoiceParam("repetitions", "repetitions", REPETITIONS_OPTIONS, DEFAULT_REPETITIONS);
+      this.#barsParam = new ChoiceParam("bars", "bars", BARS_OPTIONS, DEFAULT_BARS);
+      this.#beatsParam = new IntParam("beats", "beats", BEATS_MIN, BEATS_MAX, DEFAULT_BEATS)
+      this.#subdivisionsParam = new ChoiceParam("subdivisions", "subdivisions", SUBDIVISIONS_OPTIONS, DEFAULT_SUBDIVISIONS);
+      this.#patternParam = new PatternParam("pattern", "pattern", makeDefaultPattern(DEFAULT_BEATS, DEFAULT_SUBDIVISIONS));
+      this.#prerollBarsParam = new ChoiceParam("prerollBars", "preroll-bars", PREROLL_BARS_OPTIONS, DEFAULT_PREROLL_BARS);
+      this.#presetContainerDiv = document.getElementById("preset-container");
+      this.#presetSelect = document.getElementById("preset");
+      this.#fetchErrorDiv = document.getElementById("fetch-error");
+      this.#exportUrlContainer = document.getElementById("export-url-container");
+      this.#exportUrlInput = document.getElementById("export-url-input");
+      this.#exportUrlCopyBtn = document.getElementById("export-url-copy");
+      this.#exportUrlCloseBtn = document.getElementById("export-url-close");
+
+      this.#presetParams = toSortedParams([
+        this.#tempoParam,
+        this.#startExerciseParam,
+        this.#exercisesParam,
+        this.#repetitionsParam,
+        this.#barsParam,
+        this.#beatsParam,
+        this.#subdivisionsParam,
+        this.#patternParam,
+        this.#prerollBarsParam
+      ]);
+
+      this.#urlParams = toSortedParams([]);
+
+      this.#otherParams = toSortedParams([this.#darkParam]);
+
+      const volume = silent ? 0.0 : 1.0;
+      this.#clicks = {
+        [Accent.HIGH]: DecayingSawtoothClick.Builder(1760, volume),
+        [Accent.MEDIUM]: DecayingSawtoothClick.Builder(880, volume),
+        [Accent.LOW]: DecayingSawtoothClick.Builder(440, volume),
+        [Accent.SILENT]: null
+      };
+
+      this.#initUi(document);
+
+      if (importPresets !== null) {
+        try {
+          if (importPresets.length > MAX_IMPORT_JSON_BYTES) {
+            throw new Error("Import data too large");
+          }
+
+          const s = atob(importPresets);
+          const obj = JSON.parse(s);
+          if (!Array.isArray(obj)) {
+            throw new Error("Invalid import format");
+          }
+          if (obj.length > MAX_IMPORT_PRESETS_LENGTH) {
+            throw new Error("Too many presets");
+          }
+
+          const presets = obj.filter(p => p && typeof p.name === "string");
+          if (confirm(`Import ${presets.length} presets from URL?`)) {
+            this.#writePresets(presets);
+          }
+
+          this.#pushState();
+        } catch (err) {
+          this.#showFetchError(err);
+        }
+      }
+
+      if (this.#readPresets() === null) {
+        this.#fetchPresets()
+          .then(() => this.#initPresetsUi())
+          .catch(err => {
+            this.#showFetchError(err);
+            this.#initPresetsUi();
+          });
+      } else {
+        this.#initPresetsUi();
+      }
+    }
+
+    #showFetchError(e) {
+      this.#fetchErrorDiv.textContent = e.message || "(unknown error)";
+      this.#fetchErrorDiv.hidden = false;
+    }
+
+    #hideFetchError() {
+      this.#fetchErrorDiv.hidden = true;
+      this.#fetchErrorDiv.textContent = "";
+    }
+
+    #fetchPresets() {
+      return fetch(DATA_FILE_NAME, { cache: "no-store" }).then(response => {
+        if (response.ok) {
+          return response.json();
+        } else {
+          console.error(`Fetch from ${response.url} failed with HTTP status ${response.status}`);
+          throw new Error(`Failed to load default presets from ${DATA_FILE_NAME}`);
+        }
+      }).then(data => {
+        const presets = Object.hasOwn(data, "presets") && Array.isArray(data.presets) ? data.presets : [];
+        return this.#writePresets(presets);
+      });
+    }
+
+    #readPresets() {
+      const json = localStorage.getItem("presets");
+      if (json === null) { return null; }
+      try {
+        const obj = JSON.parse(json);
+        return Array.isArray(obj) ? obj.toSorted((a, b) => (a.name ?? "").localeCompare(b.name ?? "")) : null;
+      } catch {
+        return null;
+      }
+    }
+
+    #writePresets(presets) {
+      if (!Array.isArray(presets)) { return []; }
+      const sortedPresets = presets.toSorted((a, b) => (a.name ?? "").localeCompare(b.name ?? ""));
+      const json = JSON.stringify(sortedPresets);
+      localStorage.setItem("presets", json);
+      return sortedPresets;
+    }
+
+    #addOrOverwritePreset(preset) {
+      const raw = this.#readPresets();
+      const presets = (raw ?? []).filter(p => (p.name ?? "").localeCompare(preset.name) !== 0);
+      presets.push(preset);
+      const newPresets = this.#writePresets(presets);
+      return newPresets.findIndex(p => !p.name.localeCompare(preset.name));
+    }
+
+    #initUi(document) {
+      this.#progressExerciseDiv.innerHTML = IDLE_HTML;
+      this.#progressRepetitionDiv.innerHTML = IDLE_HTML;
+      this.#progressBarDiv.innerHTML = IDLE_HTML;
+      this.#dotsDiv.replaceChildren();
+
+      this.#populateSelect(this.#tempoParam, 50, 250);
+      this.#populateSelect(this.#barsParam, 1, 4);
+      this.#populateSelect(this.#beatsParam, 1, 16);
+
+      this.#startStopBtn.textContent = START_CAPTION;
+
+      this.#exportUrlCopyBtn.addEventListener("click", () => {
+        this.#exportUrlInput.select();
+        navigator.clipboard.writeText(this.#exportUrlInput.value).catch(() => { });
+      });
+      this.#exportUrlCloseBtn.addEventListener("click", () => {
+        this.#exportUrlContainer.hidden = true;
+      });
+
+      const params = new URLSearchParams(window.location.search);
+      for (const p of [...this.#presetParams, ...this.#urlParams]) {
+        p.value = p.parse(params.get(p.id));
+      }
+      for (const p of this.#otherParams) {
+        p.init();
+      }
+
+      const inputs = [
+        this.#startExerciseParam.element,
+        this.#exercisesParam.element,
+      ];
+      for (const input of inputs) {
+        input.addEventListener("keydown", event => {
+          if (event.key === "e") {
+            event.preventDefault();
+          }
+        });
+      }
+
+      for (const p of [...this.#presetParams, ...this.#urlParams]) {
+        p.element.addEventListener("input", event => {
+          this.#presetSelect.selectedIndex = -1;
+          this.#pushState();
+          this.#updateEstimatedRuntime();
+        });
+      }
+
+      this.#updateEstimatedRuntime();
+
+      this.#beatsParam.element.addEventListener("input", event => {
+        if (!event.target.validity.valid) { return; }
+        const beats = parseInt(event.target.value, 10);
+        if (Number.isNaN(beats)) { return; }
+
+        if (!this.#subdivisionsParam.element.validity.valid) { return; }
+        const subdivisions = parseInt(this.#subdivisionsParam.element.value, 10);
+        if (Number.isNaN(subdivisions)) { return; }
+
+        this.#patternParam.element.value = makeDefaultPattern(beats, subdivisions);
+      });
+
+      this.#subdivisionsParam.element.addEventListener("input", event => {
+        if (!event.target.validity.valid) { return; }
+        const subdivisions = parseInt(event.target.value, 10);
+        if (Number.isNaN(subdivisions)) { return; }
+
+        if (!this.#beatsParam.element.validity.valid) { return; }
+        const beats = parseInt(this.#beatsParam.element.value, 10);
+        if (Number.isNaN(beats)) { return; }
+
+        this.#patternParam.element.value = makeDefaultPattern(beats, subdivisions);
+      });
+
+      this.#startStopBtn.addEventListener("click", event => {
+        if (event.target.textContent === START_CAPTION) {
+          this.#startMetronome();
+        }
+        else if (event.target.textContent === STOP_CAPTION) {
+          this.#stopMetronome();
+        }
+      });
+
+      document.addEventListener("keydown", event => {
+        if (event.key !== " " && event.key !== "Spacebar") { return; }
+        const active = document.activeElement;
+        if (active && (active.tagName === "INPUT" || active.tagName === "SELECT" || active.tagName === "TEXTAREA")) {
+          return;
+        }
+        event.preventDefault();
+        if (this.#startStopBtn !== active) {
+          this.#startStopBtn.click();
+        }
+      });
+    }
+
+    #updateEstimatedRuntime() {
+      const tempo = Math.max(1, this.#tempoParam.value);
+      const exercises = this.#exercisesParam.value;
+      const repetitions = this.#repetitionsParam.value;
+      const bars = this.#barsParam.value;
+      const beats = this.#beatsParam.value;
+
+      let totalSeconds;
+      if (!Number.isFinite(exercises) || !Number.isFinite(repetitions) || !Number.isFinite(bars) || !Number.isFinite(beats) ||
+        exercises < 1 || repetitions < 1 || bars < 1 || beats < 1) {
+        totalSeconds = 0;
+      } else {
+        const totalBars = exercises * repetitions * bars;
+        const secondsPerBar = beats * (60 / tempo);
+        totalSeconds = totalBars * secondsPerBar;
+      }
+      this.#estimatedRuntimeSpan.textContent = formatElapsed(totalSeconds);
+    }
+
+    #initPresetsUi() {
+      this.#populatePresetsUi();
+
+      this.#presetSelect.addEventListener("change", event => {
+        if (event.target.value.length > 0) {
+          const command = parseInt(event.target.value, 10);
+          event.target.selectedIndex = -1;
+          switch (command) {
+            case SAVE_ID: {
+              const name = prompt("Enter preset name");
+              if (name !== null) {
+                const preset = { name: name };
+                for (const p of this.#presetParams) {
+                  preset[p.name] = p.value;
+                }
+
+                const idx = this.#addOrOverwritePreset(preset);
+                this.#populatePresetsUi();
+                this.#presetSelect.selectedIndex = idx;
+              }
+              break;
+            }
+            case REMOVE_ID: {
+              const name = prompt("Enter preset name");
+              if (name !== null) {
+                const raw = this.#readPresets();
+                this.#writePresets((raw ?? []).filter(p => p.name.localeCompare(name)));
+                this.#populatePresetsUi();
+              }
+              break;
+            }
+            case CLEAR_ID: {
+              this.#writePresets([]);
+              this.#populatePresetsUi();
+              break;
+            }
+            case EXPORT_ID: {
+              const presetsToExport = this.#readPresets() ?? [];
+              const s = JSON.stringify(presetsToExport);
+              const encoded = btoa(s);
+              const url = new URL(window.location.href);
+              url.searchParams.forEach((v, k) => url.searchParams.delete(k));
+              url.searchParams.set(IMPORT_PRESETS_PARAM, encoded);
+              const exportUrl = url.toString();
+              this.#exportUrlInput.value = exportUrl;
+              this.#exportUrlContainer.hidden = false;
+              this.#exportUrlInput.select();
+              break;
+            }
+            case RESET_ID: {
+              this.#fetchPresets()
+                .then(() => this.#populatePresetsUi())
+                .catch(err => this.#showFetchError(err));
+              break;
+            }
+          }
+          return;
+        }
+
+        const selectedOption = event.target.options[event.target.selectedIndex];
+        const json = selectedOption?.dataset.presetJson;
+        if (!json) { return; }
+
+        let preset;
+        try {
+          preset = JSON.parse(json);
+        } catch {
+          return;
+        }
+
+        if (!preset || typeof preset !== "object") { return; }
+
+        for (const p of this.#presetParams) {
+          if (!Object.hasOwn(preset, p.name)) { continue; }
+          let value = preset[p.name];
+          if (p.tagName === "SELECT") {
+            value = String(value);
+          }
+
+          p.value = value;
+        }
+        this.#pushState();
+        this.#updateEstimatedRuntime();
+      })
+    }
+
+    #populatePresetsUi() {
+      function addCommandOption(presetSelect, innerHtml, value = null, disabled = false) {
+        const element = document.createElement("option");
+        element.innerHTML = innerHtml;
+        if (value !== null) {
+          element.value = value;
+        }
+        element.disabled = disabled;
+        presetSelect.appendChild(element);
+      }
+
+      this.#presetSelect.replaceChildren();
+
+      const presets = this.#readPresets() ?? [];
+      if (presets.length > 0) {
+        for (const preset of presets) {
+          const element = document.createElement("option");
+          element.innerHTML = h(preset.name);
+          element.value = "";
+          element.dataset.presetJson = JSON.stringify(preset);
+          this.#presetSelect.appendChild(element);
+        }
+
+        addCommandOption(this.#presetSelect, "__________", null, true);
+      }
+
+      addCommandOption(this.#presetSelect, "Save current parameters as preset...", SAVE_ID);
+      addCommandOption(this.#presetSelect, "Remove preset...", REMOVE_ID);
+      addCommandOption(this.#presetSelect, "Clear all presets", CLEAR_ID);
+      addCommandOption(this.#presetSelect, "Export presets...", EXPORT_ID);
+      addCommandOption(this.#presetSelect, "Reset presets to defaults", RESET_ID);
+
+      this.#presetContainerDiv.style.setProperty("display", "inline-block", "important");
+      this.#presetSelect.selectedIndex = -1;
+    }
+
+    #pushState() {
+      const url = new URL(window.location.href);
+      for (const k of [...url.searchParams.keys()]) {
+        url.searchParams.delete(k);
+      }
+      for (const p of [...this.#presetParams, ...this.#urlParams]) {
+        url.searchParams.set(p.id, p.value.toString());
+      }
+      window.history.replaceState({}, "", url);
+    }
+
+    #populateSelect(param, min, max, htmlFunc = null) {
+      param.element.replaceChildren();
+      for (let i = min; i <= max; ++i) {
+        const e = document.createElement("option");
+        e.value = i;
+        e.innerHTML = htmlFunc ? htmlFunc(i) : i.toString();
+        param.element.appendChild(e);
+      }
+    }
+
+    #startMetronome() {
+      console.assert(!this.#tracker && !this.#beeper);
+      this.#hideFetchError();
+
+      this.#startStopBtn.textContent = STOP_CAPTION;
+      this.#fields.disabled = true;
+
+      this.#elapsedTimerStart = performance.now();
+      this.#elapsedTimeSpan.textContent = formatElapsed(0);
+      this.#elapsedTimerIntervalId = setInterval(() => {
+        const seconds = (performance.now() - this.#elapsedTimerStart) / 1000;
+        this.#elapsedTimeSpan.textContent = formatElapsed(seconds);
+      }, 500);
+
+      const tempo = Math.max(TEMPO_MIN, this.#tempoParam.value);
+      const exerciseOffset = this.#startExerciseParam.element.valueAsNumber - 1;
+      const exercises = this.#exercisesParam.element.valueAsNumber;
+      const repetitions = parseInt(this.#repetitionsParam.element.value, 10);
+      const bars = parseInt(this.#barsParam.element.value, 10);
+      const beats = parseInt(this.#beatsParam.element.value, 10);
+      const subdivisions = parseInt(this.#subdivisionsParam.element.value, 10);
+      const pattern = parsePattern(this.#patternParam.element.value, beats, subdivisions);
+      const prerollBars = parseInt(this.#prerollBarsParam.element.value, 10);
+
+      this.#beeper = new Beeper({
+        audioCtx: this.#audioCtx,
+        tempo: tempo,
+        beats: beats,
+        subdivisions: subdivisions,
+        pattern: pattern,
+        queue: this.#queue,
+        clicks: this.#clicks
+      });
+
+      this.#tracker = new Tracker({
+        id: ++this.#trackerId,
+        audioCtx: this.#audioCtx,
+        queue: this.#queue,
+        body: this.#body,
+        progressExerciseDiv: this.#progressExerciseDiv,
+        progressRepetitionDiv: this.#progressRepetitionDiv,
+        progressBarDiv: this.#progressBarDiv,
+        dotsDiv: this.#dotsDiv,
+        exerciseOffset: exerciseOffset,
+        exercises: exercises,
+        repetitions: repetitions,
+        bars: bars,
+        prerollBars: prerollBars,
+        startExercise: this.#startExercise,
+        onFinished: () => this.#setMetronomeIdle()
+      });
+
+      this.#startExercise = 0;
+
+      this.#tracker.start();
+      this.#beeper.start();
+    }
+
+    #stopMetronome() {
+      console.assert(this.#tracker && this.#beeper);
+
+      if (this.#startStopBtn.textContent === STOP_CAPTION &&
+        this.#tracker.lastExercise &&
+        !confirm("Discard current progress? (OK to stop, Esc to restart current exercise with preroll)")) {
+        const lastExercise = this.#tracker.lastExercise;
+        this.#setMetronomeIdle();
+        this.#startExercise = lastExercise;
+        this.#startMetronome();
+        return;
+      } else {
+        this.#setMetronomeIdle();
+      }
+    }
+
+    #setMetronomeIdle() {
+      if (this.#elapsedTimerIntervalId != null) {
+        clearInterval(this.#elapsedTimerIntervalId);
+        this.#elapsedTimerIntervalId = null;
+      }
+
+      this.#elapsedTimeSpan.innerHTML = IDLE_HTML;
+
+      if (this.#beeper) {
+        this.#beeper.stop();
+        this.#beeper = null;
+      }
+
+      if (this.#tracker) {
+        this.#tracker.stop();
+        this.#tracker = null;
+      }
+
+      this.#queue.clear();
+
+      this.#body.classList.remove("last");
+      this.#progressExerciseDiv.innerHTML = IDLE_HTML;
+      this.#progressRepetitionDiv.innerHTML = IDLE_HTML;
+      this.#progressBarDiv.innerHTML = IDLE_HTML;
+      this.#dotsDiv.replaceChildren();
+
+      this.#startStopBtn.textContent = START_CAPTION;
+      this.#fields.disabled = false;
+
+      this.#startExercise = 0;
+    }
+  }
+
+  (() => new App(document, window))();
+  //]]>
+</script>
+
+</html>

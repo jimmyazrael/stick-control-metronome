@@ -1,0 +1,23 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(find . -name *.json -o -name package.json -o -name .github -type d)",
+      "Bash(npm create:*)",
+      "Bash(npm --version)",
+      "Bash(nvm list:*)",
+      "Bash(where node:*)",
+      "Bash(\"D:\\\\Program Files\\\\nodejs\\\\node.exe\" --version)",
+      "Bash(\"/d/Program Files/nodejs/node.exe\" --version)",
+      "Bash(\"/c/Program Files/nodejs/node.exe\" --version)",
+      "Read(//f/Programs/stick-control-metronome/$USERPROFILE/AppData/Roaming/**)",
+      "Read(//c/Users/Jimmy/AppData/Roaming/**)",
+      "Bash(powershell.exe -Command \"nvm version\")",
+      "Bash(npm install:*)",
+      "Bash(npm run:*)",
+      "Bash(git add:*)"
+    ],
+    "additionalDirectories": [
+      "F:\\Programs\\stick-control-metronome\\src"
+    ]
+  }
+}

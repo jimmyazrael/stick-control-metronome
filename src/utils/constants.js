@@ -1,0 +1,21 @@
+export const DEFAULT_TEMPO = 120;
+export const DEFAULT_START_EXERCISE = 1;
+export const DEFAULT_EXERCISES = 24;
+export const DEFAULT_REPETITIONS = 20;
+export const DEFAULT_BARS = 2;
+export const DEFAULT_BEATS = 4;
+export const DEFAULT_SUBDIVISIONS = 2;
+export const DEFAULT_PREROLL_BARS = 2;
+
+export const TEMPO_MIN = 50;
+export const TEMPO_MAX = 250;
+export const START_EXERCISE_MIN = 1;
+export const START_EXERCISE_MAX = 100;
+export const EXERCISES_MIN = 1;
+export const EXERCISES_MAX = 100;
+export const REPETITIONS_OPTIONS = [1, 2, 5, 10, 20, 50];
+export const BARS_OPTIONS = [1, 2, 3, 4];
+export const BEATS_MIN = 1;
+export const BEATS_MAX = 16;
+export const SUBDIVISIONS_OPTIONS = [1, 2, 4];
+export const PREROLL_BARS_OPTIONS = [1, 2, 3, 4];

@@ -1,0 +1,16 @@
+{
+  "presets": [
+    {
+      "name": "(Default)",
+      "tempo": 120,
+      "startExercise": 1,
+      "exercises": 24,
+      "repetitions": 20,
+      "bars": 2,
+      "beats": 4,
+      "subdivisions": 2,
+      "pattern": "ACBCBCBC",
+      "prerollBars": 2
+    }
+  ]
+}
