@@ -21,6 +21,7 @@ function App() {
   const [pattern, setPattern] = useState(makeDefaultPattern(DEFAULT_BEATS, DEFAULT_SUBDIVISIONS));
   const [prerollBars, setPrerollBars] = useState(DEFAULT_PREROLL_BARS);
   const [estimatedRuntime, setEstimatedRuntime] = useState('0:00');
+  const [resumeFromRepetition, setResumeFromRepetition] = useState(true);
 
   const { playbackState, currentBeat, isLastBar, currentExercise, currentRepetition, currentBar, isPreroll, start, stop, pause, resume } = useMetronome();
 
@@ -40,7 +41,7 @@ function App() {
   };
 
   const handleResume = () => {
-    resume();
+    resume(resumeFromRepetition);
   };
 
   const isPlaying = playbackState === 'playing';
@@ -100,14 +101,14 @@ function App() {
           </div>
         )}
 
-        {/* Beat Indicators */}
-        <div className="flex gap-4 flex-wrap justify-center mb-8">
+        {/* Beat Indicators - Full Width Responsive */}
+        <div className="grid gap-4 mb-8 px-4" style={{ gridTemplateColumns: `repeat(${beats}, 1fr)` }}>
           {[...Array(beats)].map((_, i) => (
             <div
               key={i}
-              className={`w-28 h-28 rounded-full flex items-center justify-center text-4xl font-bold transition-all duration-150 ${
+              className={`aspect-square rounded-full flex items-center justify-center text-4xl font-bold transition-all duration-150 ${
                 currentBeat === i && playbackState === 'playing'
-                  ? 'bg-yellow-400 text-gray-900 scale-125 shadow-2xl ring-8 ring-yellow-300'
+                  ? 'bg-yellow-400 text-gray-900 scale-110 shadow-2xl ring-4 ring-yellow-300'
                   : 'bg-white/20 text-white/60 border-4 border-white/40'
               }`}
             >
@@ -119,70 +120,85 @@ function App() {
         {/* Transport Controls */}
         <div className="flex gap-6 justify-center mb-8">
           {playbackState === 'idle' && (
-            <button onClick={handleStart} className="w-28 h-28 rounded-full bg-white text-green-600 text-6xl shadow-2xl active:scale-95 transition">▶</button>
+            <button onClick={handleStart} className="w-28 h-28 rounded-full bg-yellow-400 text-gray-900 text-6xl shadow-2xl hover:bg-yellow-300 active:scale-95 transition flex items-center justify-center">▶</button>
           )}
           {playbackState === 'playing' && (
             <>
-              <button onClick={pause} className="w-24 h-24 rounded-full bg-yellow-400 text-gray-900 text-5xl shadow-2xl active:scale-95 transition">⏸</button>
-              <button onClick={stop} className="w-24 h-24 rounded-full bg-red-500 text-white text-5xl shadow-2xl active:scale-95 transition">⏹</button>
+              <button onClick={pause} className="w-24 h-24 rounded-full bg-white/30 backdrop-blur text-white text-5xl shadow-2xl hover:bg-white/40 active:scale-95 transition flex items-center justify-center border-2 border-white/50">⏸</button>
+              <button onClick={stop} className="w-24 h-24 rounded-full bg-white/30 backdrop-blur text-white text-5xl shadow-2xl hover:bg-white/40 active:scale-95 transition flex items-center justify-center border-2 border-white/50">⏹</button>
             </>
           )}
           {playbackState === 'paused' && (
             <>
-              <button onClick={handleResume} className="w-24 h-24 rounded-full bg-white text-green-600 text-5xl shadow-2xl active:scale-95 transition">▶</button>
-              <button onClick={stop} className="w-24 h-24 rounded-full bg-red-500 text-white text-5xl shadow-2xl active:scale-95 transition">⏹</button>
+              <button onClick={handleResume} className="w-24 h-24 rounded-full bg-yellow-400 text-gray-900 text-5xl shadow-2xl hover:bg-yellow-300 active:scale-95 transition flex items-center justify-center">▶</button>
+              <button onClick={stop} className="w-24 h-24 rounded-full bg-white/30 backdrop-blur text-white text-5xl shadow-2xl hover:bg-white/40 active:scale-95 transition flex items-center justify-center border-2 border-white/50">⏹</button>
             </>
           )}
         </div>
       </div>
 
-      {/* Controls - Compact and Less Prominent */}
-      <div className="bg-black/20 backdrop-blur p-4">
-        <div className="max-w-4xl mx-auto grid grid-cols-4 gap-2 text-xs">
-          <div>
-            <label className="text-white/60">Tempo</label>
-            <input type="number" min={TEMPO_MIN} max={TEMPO_MAX} value={tempo} onChange={(e) => setTempo(Number(e.target.value))} className="w-full p-2 rounded text-sm" disabled={playbackState !== 'idle'} />
+      {/* Controls - Modern Design */}
+      <div className="bg-black/20 backdrop-blur border-t border-white/10">
+        <div className="max-w-6xl mx-auto p-6">
+          {/* Main Controls */}
+          <div className="grid grid-cols-4 gap-4 mb-4">
+            <div className="bg-white/10 rounded-xl p-3 backdrop-blur">
+              <label className="text-white/70 text-xs block mb-1">Tempo</label>
+              <input type="number" min={TEMPO_MIN} max={TEMPO_MAX} value={tempo} onChange={(e) => setTempo(Number(e.target.value))} className="w-full bg-white/20 border border-white/30 rounded-lg p-2 text-white text-center text-lg font-bold focus:outline-none focus:ring-2 focus:ring-yellow-400" disabled={playbackState !== 'idle'} />
+            </div>
+            <div className="bg-white/10 rounded-xl p-3 backdrop-blur">
+              <label className="text-white/70 text-xs block mb-1">Exercises</label>
+              <input type="number" min={EXERCISES_MIN} max={EXERCISES_MAX} value={exercises} onChange={(e) => setExercises(Number(e.target.value))} className="w-full bg-white/20 border border-white/30 rounded-lg p-2 text-white text-center text-lg font-bold focus:outline-none focus:ring-2 focus:ring-yellow-400" disabled={playbackState !== 'idle'} />
+            </div>
+            <div className="bg-white/10 rounded-xl p-3 backdrop-blur">
+              <label className="text-white/70 text-xs block mb-1">Reps</label>
+              <select value={repetitions} onChange={(e) => setRepetitions(Number(e.target.value))} className="w-full bg-white/20 border border-white/30 rounded-lg p-2 text-white text-center text-lg font-bold focus:outline-none focus:ring-2 focus:ring-yellow-400" disabled={playbackState !== 'idle'}>
+                {REPETITIONS_OPTIONS.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+              </select>
+            </div>
+            <div className="bg-white/10 rounded-xl p-3 backdrop-blur">
+              <label className="text-white/70 text-xs block mb-1">Beats</label>
+              <input type="number" min={BEATS_MIN} max={BEATS_MAX} value={beats} onChange={(e) => setBeats(Number(e.target.value))} className="w-full bg-white/20 border border-white/30 rounded-lg p-2 text-white text-center text-lg font-bold focus:outline-none focus:ring-2 focus:ring-yellow-400" disabled={playbackState !== 'idle'} />
+            </div>
           </div>
-          <div>
-            <label className="text-white/60">Start</label>
-            <input type="number" min={START_EXERCISE_MIN} max={START_EXERCISE_MAX} value={startExercise} onChange={(e) => setStartExercise(Number(e.target.value))} className="w-full p-2 rounded text-sm" disabled={playbackState !== 'idle'} />
+
+          {/* Secondary Controls */}
+          <div className="grid grid-cols-5 gap-3 mb-4">
+            <div className="bg-white/10 rounded-lg p-2 backdrop-blur">
+              <label className="text-white/70 text-xs block mb-1">Start</label>
+              <input type="number" min={START_EXERCISE_MIN} max={START_EXERCISE_MAX} value={startExercise} onChange={(e) => setStartExercise(Number(e.target.value))} className="w-full bg-white/20 border border-white/30 rounded p-1 text-white text-center text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400" disabled={playbackState !== 'idle'} />
+            </div>
+            <div className="bg-white/10 rounded-lg p-2 backdrop-blur">
+              <label className="text-white/70 text-xs block mb-1">Bars</label>
+              <select value={bars} onChange={(e) => setBars(Number(e.target.value))} className="w-full bg-white/20 border border-white/30 rounded p-1 text-white text-center text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400" disabled={playbackState !== 'idle'}>
+                {BARS_OPTIONS.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+              </select>
+            </div>
+            <div className="bg-white/10 rounded-lg p-2 backdrop-blur">
+              <label className="text-white/70 text-xs block mb-1">Subs</label>
+              <select value={subdivisions} onChange={(e) => setSubdivisions(Number(e.target.value))} className="w-full bg-white/20 border border-white/30 rounded p-1 text-white text-center text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400" disabled={playbackState !== 'idle'}>
+                {SUBDIVISIONS_OPTIONS.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+              </select>
+            </div>
+            <div className="bg-white/10 rounded-lg p-2 backdrop-blur">
+              <label className="text-white/70 text-xs block mb-1">Preroll</label>
+              <select value={prerollBars} onChange={(e) => setPrerollBars(Number(e.target.value))} className="w-full bg-white/20 border border-white/30 rounded p-1 text-white text-center text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400" disabled={playbackState !== 'idle'}>
+                {PREROLL_BARS_OPTIONS.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+              </select>
+            </div>
+            <div className="bg-white/10 rounded-lg p-2 backdrop-blur flex items-center justify-center">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input type="checkbox" checked={resumeFromRepetition} onChange={(e) => setResumeFromRepetition(e.target.checked)} className="w-4 h-4" disabled={playbackState !== 'idle'} />
+                <span className="text-white/70 text-xs">Resume from rep</span>
+              </label>
+            </div>
           </div>
-          <div>
-            <label className="text-white/60">Exercises</label>
-            <input type="number" min={EXERCISES_MIN} max={EXERCISES_MAX} value={exercises} onChange={(e) => setExercises(Number(e.target.value))} className="w-full p-2 rounded text-sm" disabled={playbackState !== 'idle'} />
+
+          {/* Pattern */}
+          <div className="bg-white/10 rounded-lg p-3 backdrop-blur">
+            <label className="text-white/70 text-xs block mb-1">Pattern</label>
+            <input type="text" value={pattern} onChange={(e) => setPattern(e.target.value)} className="w-full bg-white/20 border border-white/30 rounded-lg p-2 text-white font-mono text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400" disabled={playbackState !== 'idle'} />
           </div>
-          <div>
-            <label className="text-white/60">Reps</label>
-            <select value={repetitions} onChange={(e) => setRepetitions(Number(e.target.value))} className="w-full p-2 rounded text-sm" disabled={playbackState !== 'idle'}>
-              {REPETITIONS_OPTIONS.map(opt => <option key={opt} value={opt}>{opt}</option>)}
-            </select>
-          </div>
-          <div>
-            <label className="text-white/60">Bars</label>
-            <select value={bars} onChange={(e) => setBars(Number(e.target.value))} className="w-full p-2 rounded text-sm" disabled={playbackState !== 'idle'}>
-              {BARS_OPTIONS.map(opt => <option key={opt} value={opt}>{opt}</option>)}
-            </select>
-          </div>
-          <div>
-            <label className="text-white/60">Beats</label>
-            <input type="number" min={BEATS_MIN} max={BEATS_MAX} value={beats} onChange={(e) => setBeats(Number(e.target.value))} className="w-full p-2 rounded text-sm" disabled={playbackState !== 'idle'} />
-          </div>
-          <div>
-            <label className="text-white/60">Subs</label>
-            <select value={subdivisions} onChange={(e) => setSubdivisions(Number(e.target.value))} className="w-full p-2 rounded text-sm" disabled={playbackState !== 'idle'}>
-              {SUBDIVISIONS_OPTIONS.map(opt => <option key={opt} value={opt}>{opt}</option>)}
-            </select>
-          </div>
-          <div>
-            <label className="text-white/60">Preroll</label>
-            <select value={prerollBars} onChange={(e) => setPrerollBars(Number(e.target.value))} className="w-full p-2 rounded text-sm" disabled={playbackState !== 'idle'}>
-              {PREROLL_BARS_OPTIONS.map(opt => <option key={opt} value={opt}>{opt}</option>)}
-            </select>
-          </div>
-        </div>
-        <div className="max-w-4xl mx-auto mt-2">
-          <label className="text-white/60 text-xs">Pattern</label>
-          <input type="text" value={pattern} onChange={(e) => setPattern(e.target.value)} className="w-full p-2 rounded font-mono text-sm" disabled={playbackState !== 'idle'} />
         </div>
       </div>
     </div>

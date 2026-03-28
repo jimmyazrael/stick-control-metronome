@@ -13,6 +13,7 @@ export function useMetronome() {
   const [currentRepetition, setCurrentRepetition] = useState(0);
   const [currentBar, setCurrentBar] = useState(0);
   const [isPreroll, setIsPreroll] = useState(false);
+  const [pausedState, setPausedState] = useState(null);
 
   const beeperRef = useRef(null);
   const queueRef = useRef(new Queue());
@@ -73,11 +74,33 @@ export function useMetronome() {
     if (animationFrameRef.current) {
       cancelAnimationFrame(animationFrameRef.current);
     }
+    setPausedState({ exercise: currentExercise, repetition: currentRepetition, bar: currentBar });
     setPlaybackState('paused');
   };
 
-  const resume = () => {
-    if (playbackState !== 'paused' || !configRef.current) return;
+  const resume = (fromRepetition = true) => {
+    if (playbackState !== 'paused' || !configRef.current || !pausedState) return;
+
+    const config = { ...configRef.current };
+
+    if (fromRepetition) {
+      // Resume from beginning of current repetition with preroll
+      const barsPerExercise = config.bars * config.repetitions;
+      const exerciseIndex = pausedState.exercise - config.startExercise;
+      const barOffset = exerciseIndex * barsPerExercise + pausedState.repetition * config.bars;
+
+      // Adjust beeper to start from this position
+      queueRef.current.clear();
+      lastAnnouncedRepRef.current = -1;
+    } else {
+      // Resume from beginning of current exercise with preroll
+      const barsPerExercise = config.bars * config.repetitions;
+      const exerciseIndex = pausedState.exercise - config.startExercise;
+      const barOffset = exerciseIndex * barsPerExercise;
+
+      queueRef.current.clear();
+      lastAnnouncedRepRef.current = -1;
+    }
 
     const audioCtx = audioContextManager.getContext();
     const clicks = {
@@ -89,10 +112,10 @@ export function useMetronome() {
 
     beeperRef.current = new Beeper({
       audioCtx,
-      tempo: configRef.current.tempo,
-      beats: configRef.current.beats,
-      subdivisions: configRef.current.subdivisions,
-      pattern: configRef.current.pattern,
+      tempo: config.tempo,
+      beats: config.beats,
+      subdivisions: config.subdivisions,
+      pattern: config.pattern,
       queue: queueRef.current,
       clicks
     });
