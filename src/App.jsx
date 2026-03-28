@@ -1,155 +1,141 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useMetronome } from './hooks/useMetronome';
 import { makeDefaultPattern } from './utils/patterns';
-import { DEFAULT_TEMPO, DEFAULT_BEATS, DEFAULT_SUBDIVISIONS, TEMPO_MIN, TEMPO_MAX, BEATS_MIN, BEATS_MAX, SUBDIVISIONS_OPTIONS } from './utils/constants';
+import { formatElapsed } from './utils/formatting';
+import {
+  DEFAULT_TEMPO, DEFAULT_START_EXERCISE, DEFAULT_EXERCISES, DEFAULT_REPETITIONS,
+  DEFAULT_BARS, DEFAULT_BEATS, DEFAULT_SUBDIVISIONS, DEFAULT_PREROLL_BARS,
+  TEMPO_MIN, TEMPO_MAX, START_EXERCISE_MIN, START_EXERCISE_MAX,
+  EXERCISES_MIN, EXERCISES_MAX, REPETITIONS_OPTIONS, BARS_OPTIONS,
+  BEATS_MIN, BEATS_MAX, SUBDIVISIONS_OPTIONS, PREROLL_BARS_OPTIONS
+} from './utils/constants';
 
 function App() {
   const [tempo, setTempo] = useState(DEFAULT_TEMPO);
+  const [startExercise, setStartExercise] = useState(DEFAULT_START_EXERCISE);
+  const [exercises, setExercises] = useState(DEFAULT_EXERCISES);
+  const [repetitions, setRepetitions] = useState(DEFAULT_REPETITIONS);
+  const [bars, setBars] = useState(DEFAULT_BARS);
   const [beats, setBeats] = useState(DEFAULT_BEATS);
   const [subdivisions, setSubdivisions] = useState(DEFAULT_SUBDIVISIONS);
-  const [showControls, setShowControls] = useState(false);
-  const { playbackState, currentBeat, start, stop, pause } = useMetronome();
+  const [pattern, setPattern] = useState(makeDefaultPattern(DEFAULT_BEATS, DEFAULT_SUBDIVISIONS));
+  const [prerollBars, setPrerollBars] = useState(DEFAULT_PREROLL_BARS);
+  const [estimatedRuntime, setEstimatedRuntime] = useState('0:00');
+
+  const { playbackState, currentBeat, isLastBar, start, stop, pause } = useMetronome();
+
+  useEffect(() => {
+    const totalBars = exercises * repetitions * bars;
+    const secondsPerBar = beats * (60 / tempo);
+    const totalSeconds = totalBars * secondsPerBar;
+    setEstimatedRuntime(formatElapsed(totalSeconds));
+  }, [tempo, exercises, repetitions, bars, beats]);
+
+  useEffect(() => {
+    setPattern(makeDefaultPattern(beats, subdivisions));
+  }, [beats, subdivisions]);
 
   const handleStart = () => {
-    const pattern = makeDefaultPattern(beats, subdivisions);
-    start({ tempo, beats, subdivisions, pattern });
+    start({ tempo, beats, subdivisions, pattern, exercises, repetitions, bars });
   };
 
   const isPlaying = playbackState === 'playing';
-  const isPaused = playbackState === 'paused';
   const isIdle = playbackState === 'idle';
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-green-500 to-green-600 dark:from-gray-900 dark:to-gray-800 flex flex-col">
+    <div className={`min-h-screen flex flex-col p-4 transition-colors duration-300 ${
+      isLastBar && isPlaying ? 'animate-flash' : 'bg-green-500 dark:bg-gray-900'
+    }`}>
       {/* Header */}
-      <div className="p-4 flex justify-between items-center">
-        <h1 className="text-xl md:text-2xl font-bold text-white">Stick Control</h1>
-        <button
-          onClick={() => setShowControls(!showControls)}
-          className="text-white text-2xl p-2"
-        >
-          ⚙️
-        </button>
+      <div className="flex justify-between items-center mb-4">
+        <h1 className="text-2xl font-bold text-white">Stick Control</h1>
+        <div className="text-white text-sm">Runtime: {estimatedRuntime}</div>
       </div>
 
-      {/* Main Content */}
-      <div className="flex-1 flex flex-col items-center justify-center p-4 space-y-8">
-        {/* Tempo Display */}
-        <div className="text-center">
-          <div className="text-7xl md:text-9xl font-bold text-white mb-2">{tempo}</div>
-          <div className="text-xl md:text-2xl text-white/80">BPM</div>
-        </div>
-
-        {/* Beat Indicators */}
-        <div className="flex gap-2 md:gap-4 flex-wrap justify-center max-w-2xl">
-          {[...Array(beats)].map((_, i) => (
-            <div
-              key={i}
-              className={`w-14 h-14 md:w-20 md:h-20 rounded-full border-4 flex items-center justify-center text-xl md:text-2xl font-bold transition-all ${
-                currentBeat === i && isPlaying
-                  ? 'bg-white text-green-500 scale-110 shadow-lg'
-                  : 'border-white/50 text-white/70'
-              }`}
-            >
-              {i + 1}
-            </div>
-          ))}
-        </div>
-
-        {/* Transport Controls */}
-        <div className="flex gap-4">
-          {isIdle && (
-            <button
-              onClick={handleStart}
-              className="w-20 h-20 md:w-24 md:h-24 rounded-full bg-white text-green-500 text-4xl md:text-5xl shadow-xl hover:scale-105 active:scale-95 transition flex items-center justify-center"
-            >
-              ▶
-            </button>
-          )}
-          {isPlaying && (
-            <>
-              <button
-                onClick={pause}
-                className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-yellow-400 text-white text-3xl md:text-4xl shadow-xl active:scale-95 transition flex items-center justify-center"
-              >
-                ⏸
-              </button>
-              <button
-                onClick={stop}
-                className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-red-500 text-white text-3xl md:text-4xl shadow-xl active:scale-95 transition flex items-center justify-center"
-              >
-                ⏹
-              </button>
-            </>
-          )}
-          {isPaused && (
-            <>
-              <button
-                onClick={handleStart}
-                className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-white text-green-500 text-3xl md:text-4xl shadow-xl active:scale-95 transition flex items-center justify-center"
-              >
-                ▶
-              </button>
-              <button
-                onClick={stop}
-                className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-red-500 text-white text-3xl md:text-4xl shadow-xl active:scale-95 transition flex items-center justify-center"
-              >
-                ⏹
-              </button>
-            </>
-          )}
-        </div>
+      {/* Beat Indicators */}
+      <div className="flex gap-3 flex-wrap justify-center mb-6">
+        {[...Array(beats)].map((_, i) => (
+          <div
+            key={i}
+            className={`w-24 h-24 rounded-full border-8 flex items-center justify-center text-3xl font-bold transition-all ${
+              currentBeat === i && playbackState === 'playing'
+                ? 'bg-white text-green-600 scale-110 shadow-2xl border-white'
+                : 'border-white/60 text-white/80 bg-green-600/30'
+            }`}
+          >
+            {i + 1}
+          </div>
+        ))}
       </div>
 
-      {/* Controls Panel */}
-      {showControls && (
-        <div className="bg-white dark:bg-gray-800 p-6 rounded-t-3xl shadow-2xl space-y-6 max-h-[70vh] overflow-y-auto">
-          <h2 className="text-2xl font-bold text-gray-800 dark:text-white mb-4">Settings</h2>
+      {/* Transport Controls */}
+      <div className="flex gap-4 justify-center mb-6">
+        {playbackState === 'idle' && (
+          <button onClick={handleStart} className="w-24 h-24 rounded-full bg-white text-green-500 text-5xl shadow-xl">▶</button>
+        )}
+        {playbackState === 'playing' && (
+          <>
+            <button onClick={pause} className="w-20 h-20 rounded-full bg-yellow-400 text-white text-4xl shadow-xl">⏸</button>
+            <button onClick={stop} className="w-20 h-20 rounded-full bg-red-500 text-white text-4xl shadow-xl">⏹</button>
+          </>
+        )}
+        {playbackState === 'paused' && (
+          <>
+            <button onClick={handleStart} className="w-20 h-20 rounded-full bg-white text-green-500 text-4xl shadow-xl">▶</button>
+            <button onClick={stop} className="w-20 h-20 rounded-full bg-red-500 text-white text-4xl shadow-xl">⏹</button>
+          </>
+        )}
+      </div>
 
-          {/* Tempo Slider */}
-          <div className="space-y-2">
-            <label className="text-gray-700 dark:text-gray-300 font-medium">Tempo: {tempo} BPM</label>
-            <input
-              type="range"
-              min={TEMPO_MIN}
-              max={TEMPO_MAX}
-              value={tempo}
-              onChange={(e) => setTempo(Number(e.target.value))}
-              className="w-full h-3 bg-gray-200 rounded-lg appearance-none cursor-pointer"
-              disabled={!isIdle}
-            />
+      {/* Controls */}
+      <div className="bg-white/10 backdrop-blur rounded-lg p-4 space-y-3 max-w-2xl mx-auto w-full">
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label className="text-white text-sm">Tempo</label>
+            <input type="number" min={TEMPO_MIN} max={TEMPO_MAX} value={tempo} onChange={(e) => setTempo(Number(e.target.value))} className="w-full p-2 rounded" disabled={playbackState !== 'idle'} />
           </div>
-
-          {/* Beats */}
-          <div className="space-y-2">
-            <label className="text-gray-700 dark:text-gray-300 font-medium">Beats per Bar</label>
-            <input
-              type="number"
-              min={BEATS_MIN}
-              max={BEATS_MAX}
-              value={beats}
-              onChange={(e) => setBeats(Number(e.target.value))}
-              className="w-full p-3 text-lg border-2 border-gray-300 rounded-lg"
-              disabled={!isIdle}
-            />
+          <div>
+            <label className="text-white text-sm">Start</label>
+            <input type="number" min={START_EXERCISE_MIN} max={START_EXERCISE_MAX} value={startExercise} onChange={(e) => setStartExercise(Number(e.target.value))} className="w-full p-2 rounded" disabled={playbackState !== 'idle'} />
           </div>
-
-          {/* Subdivisions */}
-          <div className="space-y-2">
-            <label className="text-gray-700 dark:text-gray-300 font-medium">Subdivisions</label>
-            <select
-              value={subdivisions}
-              onChange={(e) => setSubdivisions(Number(e.target.value))}
-              className="w-full p-3 text-lg border-2 border-gray-300 rounded-lg"
-              disabled={!isIdle}
-            >
-              {SUBDIVISIONS_OPTIONS.map(opt => (
-                <option key={opt} value={opt}>{opt}</option>
-              ))}
+          <div>
+            <label className="text-white text-sm">Exercises</label>
+            <input type="number" min={EXERCISES_MIN} max={EXERCISES_MAX} value={exercises} onChange={(e) => setExercises(Number(e.target.value))} className="w-full p-2 rounded" disabled={playbackState !== 'idle'} />
+          </div>
+          <div>
+            <label className="text-white text-sm">Reps</label>
+            <select value={repetitions} onChange={(e) => setRepetitions(Number(e.target.value))} className="w-full p-2 rounded" disabled={playbackState !== 'idle'}>
+              {REPETITIONS_OPTIONS.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+            </select>
+          </div>
+          <div>
+            <label className="text-white text-sm">Bars</label>
+            <select value={bars} onChange={(e) => setBars(Number(e.target.value))} className="w-full p-2 rounded" disabled={playbackState !== 'idle'}>
+              {BARS_OPTIONS.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+            </select>
+          </div>
+          <div>
+            <label className="text-white text-sm">Beats</label>
+            <input type="number" min={BEATS_MIN} max={BEATS_MAX} value={beats} onChange={(e) => setBeats(Number(e.target.value))} className="w-full p-2 rounded" disabled={playbackState !== 'idle'} />
+          </div>
+          <div>
+            <label className="text-white text-sm">Subs</label>
+            <select value={subdivisions} onChange={(e) => setSubdivisions(Number(e.target.value))} className="w-full p-2 rounded" disabled={playbackState !== 'idle'}>
+              {SUBDIVISIONS_OPTIONS.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+            </select>
+          </div>
+          <div>
+            <label className="text-white text-sm">Preroll</label>
+            <select value={prerollBars} onChange={(e) => setPrerollBars(Number(e.target.value))} className="w-full p-2 rounded" disabled={playbackState !== 'idle'}>
+              {PREROLL_BARS_OPTIONS.map(opt => <option key={opt} value={opt}>{opt}</option>)}
             </select>
           </div>
         </div>
-      )}
+        <div>
+          <label className="text-white text-sm">Pattern</label>
+          <input type="text" value={pattern} onChange={(e) => setPattern(e.target.value)} className="w-full p-2 rounded font-mono" disabled={playbackState !== 'idle'} />
+        </div>
+      </div>
     </div>
   );
 }

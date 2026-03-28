@@ -7,12 +7,15 @@ import audioContextManager from '../audio/AudioContext';
 export function useMetronome() {
   const [playbackState, setPlaybackState] = useState('idle');
   const [currentBeat, setCurrentBeat] = useState(0);
+  const [isLastBar, setIsLastBar] = useState(false);
 
   const beeperRef = useRef(null);
   const queueRef = useRef(new Queue());
   const animationFrameRef = useRef(null);
+  const configRef = useRef(null);
 
   const start = (config) => {
+    configRef.current = config;
     const audioCtx = audioContextManager.getContext();
 
     const clicks = {
@@ -65,6 +68,13 @@ export function useMetronome() {
     if (note && audioContextManager.getContext().currentTime >= note.time) {
       queueRef.current.dequeue();
       setCurrentBeat(note.beat);
+
+      if (configRef.current) {
+        const { exercises, repetitions, bars } = configRef.current;
+        const totalBars = exercises * repetitions * bars;
+        const isLast = note.currentBar === totalBars - 1;
+        setIsLastBar(isLast);
+      }
     }
     animationFrameRef.current = requestAnimationFrame(updateProgress);
   };
@@ -76,5 +86,5 @@ export function useMetronome() {
     };
   }, []);
 
-  return { playbackState, currentBeat, start, stop, pause };
+  return { playbackState, currentBeat, isLastBar, start, stop, pause };
 }
