@@ -26,6 +26,9 @@ export function useMetronome() {
     configRef.current = config;
     const audioCtx = audioContextManager.getContext();
 
+    // Initialize speech synthesis for iOS
+    speechRef.current.initialize();
+
     const clicks = {
       [HIGH]: DecayingSawtoothClick.Builder(HIGH_FREQUENCY, HIGH_VOLUME),
       [MEDIUM]: DecayingSawtoothClick.Builder(MEDIUM_FREQUENCY, MEDIUM_VOLUME),
