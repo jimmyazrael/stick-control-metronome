@@ -20,4 +20,10 @@
     0%, 100% { background-color: rgb(17 24 39); }
     50% { background-color: rgb(127 29 29); }
   }
+
+  /* Fix dropdown option colors */
+  select option {
+    background-color: white;
+    color: black;
+  }
 }

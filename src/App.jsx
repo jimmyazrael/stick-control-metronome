@@ -11,17 +11,17 @@ import {
 } from './utils/constants';
 
 function App() {
-  const [tempo, setTempo] = useState(DEFAULT_TEMPO);
-  const [startExercise, setStartExercise] = useState(DEFAULT_START_EXERCISE);
-  const [exercises, setExercises] = useState(DEFAULT_EXERCISES);
-  const [repetitions, setRepetitions] = useState(DEFAULT_REPETITIONS);
-  const [bars, setBars] = useState(DEFAULT_BARS);
-  const [beats, setBeats] = useState(DEFAULT_BEATS);
-  const [subdivisions, setSubdivisions] = useState(DEFAULT_SUBDIVISIONS);
-  const [pattern, setPattern] = useState(makeDefaultPattern(DEFAULT_BEATS, DEFAULT_SUBDIVISIONS));
-  const [prerollBars, setPrerollBars] = useState(DEFAULT_PREROLL_BARS);
+  const [tempo, setTempo] = useState(() => Number(localStorage.getItem('tempo')) || DEFAULT_TEMPO);
+  const [startExercise, setStartExercise] = useState(() => Number(localStorage.getItem('startExercise')) || DEFAULT_START_EXERCISE);
+  const [exercises, setExercises] = useState(() => Number(localStorage.getItem('exercises')) || DEFAULT_EXERCISES);
+  const [repetitions, setRepetitions] = useState(() => Number(localStorage.getItem('repetitions')) || DEFAULT_REPETITIONS);
+  const [bars, setBars] = useState(() => Number(localStorage.getItem('bars')) || DEFAULT_BARS);
+  const [beats, setBeats] = useState(() => Number(localStorage.getItem('beats')) || DEFAULT_BEATS);
+  const [subdivisions, setSubdivisions] = useState(() => Number(localStorage.getItem('subdivisions')) || DEFAULT_SUBDIVISIONS);
+  const [pattern, setPattern] = useState(() => localStorage.getItem('pattern') || makeDefaultPattern(DEFAULT_BEATS, DEFAULT_SUBDIVISIONS));
+  const [prerollBars, setPrerollBars] = useState(() => Number(localStorage.getItem('prerollBars')) || DEFAULT_PREROLL_BARS);
   const [estimatedRuntime, setEstimatedRuntime] = useState('0:00');
-  const [resumeFromRepetition, setResumeFromRepetition] = useState(true);
+  const [resumeFromRepetition, setResumeFromRepetition] = useState(() => localStorage.getItem('resumeFromRepetition') === 'true');
 
   const { playbackState, currentBeat, isLastBar, currentExercise, currentRepetition, currentBar, isPreroll, start, stop, pause, resume } = useMetronome();
 
@@ -35,6 +35,19 @@ function App() {
   useEffect(() => {
     setPattern(makeDefaultPattern(beats, subdivisions));
   }, [beats, subdivisions]);
+
+  useEffect(() => {
+    localStorage.setItem('tempo', tempo);
+    localStorage.setItem('startExercise', startExercise);
+    localStorage.setItem('exercises', exercises);
+    localStorage.setItem('repetitions', repetitions);
+    localStorage.setItem('bars', bars);
+    localStorage.setItem('beats', beats);
+    localStorage.setItem('subdivisions', subdivisions);
+    localStorage.setItem('pattern', pattern);
+    localStorage.setItem('prerollBars', prerollBars);
+    localStorage.setItem('resumeFromRepetition', resumeFromRepetition);
+  }, [tempo, startExercise, exercises, repetitions, bars, beats, subdivisions, pattern, prerollBars, resumeFromRepetition]);
 
   const handleStart = () => {
     start({ tempo, beats, subdivisions, pattern, startExercise, exercises, repetitions, bars, prerollBars });
@@ -120,18 +133,38 @@ function App() {
         {/* Transport Controls */}
         <div className="flex gap-6 justify-center mb-8">
           {playbackState === 'idle' && (
-            <button onClick={handleStart} className="w-28 h-28 rounded-2xl bg-yellow-400 text-gray-900 text-6xl shadow-xl hover:bg-yellow-300 active:scale-95 transition flex items-center justify-center">▶</button>
+            <button onClick={handleStart} className="w-28 h-28 rounded-2xl bg-yellow-400 text-gray-900 shadow-xl hover:bg-yellow-300 active:scale-95 transition flex items-center justify-center">
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M8 5v14l11-7z"/>
+              </svg>
+            </button>
           )}
           {playbackState === 'playing' && (
             <>
-              <button onClick={pause} className="w-24 h-24 rounded-2xl bg-white/20 backdrop-blur text-white text-5xl shadow-xl hover:bg-white/30 active:scale-95 transition flex items-center justify-center border border-white/30">⏸</button>
-              <button onClick={stop} className="w-24 h-24 rounded-2xl bg-white/20 backdrop-blur text-white text-5xl shadow-xl hover:bg-white/30 active:scale-95 transition flex items-center justify-center border border-white/30">⏹</button>
+              <button onClick={pause} className="w-24 h-24 rounded-2xl bg-white/20 backdrop-blur text-white shadow-xl hover:bg-white/30 active:scale-95 transition flex items-center justify-center border border-white/30">
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z"/>
+                </svg>
+              </button>
+              <button onClick={stop} className="w-24 h-24 rounded-2xl bg-white/20 backdrop-blur text-white shadow-xl hover:bg-white/30 active:scale-95 transition flex items-center justify-center border border-white/30">
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="currentColor">
+                  <rect x="6" y="6" width="12" height="12"/>
+                </svg>
+              </button>
             </>
           )}
           {playbackState === 'paused' && (
             <>
-              <button onClick={handleResume} className="w-24 h-24 rounded-2xl bg-yellow-400 text-gray-900 text-5xl shadow-xl hover:bg-yellow-300 active:scale-95 transition flex items-center justify-center">▶</button>
-              <button onClick={stop} className="w-24 h-24 rounded-2xl bg-white/20 backdrop-blur text-white text-5xl shadow-xl hover:bg-white/30 active:scale-95 transition flex items-center justify-center border border-white/30">⏹</button>
+              <button onClick={handleResume} className="w-24 h-24 rounded-2xl bg-yellow-400 text-gray-900 shadow-xl hover:bg-yellow-300 active:scale-95 transition flex items-center justify-center">
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M8 5v14l11-7z"/>
+                </svg>
+              </button>
+              <button onClick={stop} className="w-24 h-24 rounded-2xl bg-white/20 backdrop-blur text-white shadow-xl hover:bg-white/30 active:scale-95 transition flex items-center justify-center border border-white/30">
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="currentColor">
+                  <rect x="6" y="6" width="12" height="12"/>
+                </svg>
+              </button>
             </>
           )}
         </div>
