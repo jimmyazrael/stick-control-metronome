@@ -26,7 +26,7 @@ export class SpeechSynthesis {
     // Cancel any pending speech
     this.synth.cancel();
 
-    const utterance = new SpeechSynthesisUtterance(`${repetitionsRemaining} remaining`);
+    const utterance = new SpeechSynthesisUtterance(`${repetitionsRemaining}`);
     utterance.rate = 1.0;
     utterance.volume = 1.0;
     utterance.lang = 'en-US';
