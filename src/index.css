@@ -17,8 +17,8 @@
   }
 
   @keyframes flash-dark {
-    0%, 100% { background-color: rgb(17 24 39); }
-    50% { background-color: rgb(127 29 29); }
+    0%, 100% { background-color: rgb(31 41 55); }
+    50% { background-color: rgb(185 28 28); }
   }
 
   /* Fix dropdown option colors */

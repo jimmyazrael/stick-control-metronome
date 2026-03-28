@@ -24,6 +24,7 @@ function App() {
   const [estimatedRuntime, setEstimatedRuntime] = useState('0:00');
   const [resumeFromRepetition, setResumeFromRepetition] = useState(() => localStorage.getItem('resumeFromRepetition') === 'true');
   const [showHelp, setShowHelp] = useState(null);
+  const [darkMode, setDarkMode] = useState(() => localStorage.getItem('darkMode') === 'true');
 
   const { playbackState, currentBeat, isLastBar, currentExercise, currentRepetition, currentBar, isPreroll, start, stop, pause, resume } = useMetronome();
   const { presets, savePreset, deletePreset, renamePreset, loadPreset } = usePresets();
@@ -51,6 +52,11 @@ function App() {
     localStorage.setItem('prerollBars', prerollBars);
     localStorage.setItem('resumeFromRepetition', resumeFromRepetition);
   }, [tempo, startExercise, exercises, repetitions, bars, beats, subdivisions, pattern, prerollBars, resumeFromRepetition]);
+
+  useEffect(() => {
+    localStorage.setItem('darkMode', darkMode);
+    document.documentElement.classList.toggle('dark', darkMode);
+  }, [darkMode]);
 
   const handleStart = () => {
     start({ tempo, beats, subdivisions, pattern, startExercise, exercises, repetitions, bars, prerollBars });
@@ -106,7 +112,7 @@ function App() {
 
   return (
     <div className={`min-h-screen flex flex-col transition-colors duration-300 ${
-      isLastBar && isPlaying ? 'animate-flash' : 'bg-green-500 dark:bg-gray-900'
+      isLastBar && isPlaying ? 'animate-flash' : 'bg-green-500 dark:bg-gray-800'
     }`}>
       {/* Progress Display - Large and Prominent */}
       {playbackState !== 'idle' && (
@@ -144,6 +150,25 @@ function App() {
               </div>
             </div>
           )}
+        </div>
+      )}
+
+      {/* Header with Dark Mode Toggle */}
+      {playbackState === 'idle' && (
+        <div className="p-4 flex justify-between items-center">
+          <div className="text-white text-sm">Runtime: {estimatedRuntime}</div>
+          <button onClick={() => setDarkMode(!darkMode)} className="text-white p-2 hover:bg-white/10 rounded-lg">
+            {darkMode ? (
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                <circle cx="12" cy="12" r="5"/>
+                <path d="M12 1v2m0 18v2M4.22 4.22l1.42 1.42m12.72 12.72l1.42 1.42M1 12h2m18 0h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
+              </svg>
+            ) : (
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+              </svg>
+            )}
+          </button>
         </div>
       )}
 
