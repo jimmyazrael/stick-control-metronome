@@ -82,25 +82,22 @@ export function useMetronome() {
     if (playbackState !== 'paused' || !configRef.current || !pausedState) return;
 
     const config = { ...configRef.current };
+    let startBar;
 
     if (fromRepetition) {
       // Resume from beginning of current repetition with preroll
       const barsPerExercise = config.bars * config.repetitions;
       const exerciseIndex = pausedState.exercise - config.startExercise;
-      const barOffset = exerciseIndex * barsPerExercise + pausedState.repetition * config.bars;
-
-      // Adjust beeper to start from this position
-      queueRef.current.clear();
-      lastAnnouncedRepRef.current = -1;
+      startBar = (config.prerollBars || 0) + exerciseIndex * barsPerExercise + pausedState.repetition * config.bars;
     } else {
       // Resume from beginning of current exercise with preroll
       const barsPerExercise = config.bars * config.repetitions;
       const exerciseIndex = pausedState.exercise - config.startExercise;
-      const barOffset = exerciseIndex * barsPerExercise;
-
-      queueRef.current.clear();
-      lastAnnouncedRepRef.current = -1;
+      startBar = (config.prerollBars || 0) + exerciseIndex * barsPerExercise;
     }
+
+    queueRef.current.clear();
+    lastAnnouncedRepRef.current = -1;
 
     const audioCtx = audioContextManager.getContext();
     const clicks = {
@@ -120,7 +117,7 @@ export function useMetronome() {
       clicks
     });
 
-    beeperRef.current.start();
+    beeperRef.current.start(startBar);
     setPlaybackState('playing');
     updateProgress();
   };

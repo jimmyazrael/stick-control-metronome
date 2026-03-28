@@ -120,18 +120,18 @@ function App() {
         {/* Transport Controls */}
         <div className="flex gap-6 justify-center mb-8">
           {playbackState === 'idle' && (
-            <button onClick={handleStart} className="w-28 h-28 rounded-full bg-yellow-400 text-gray-900 text-6xl shadow-2xl hover:bg-yellow-300 active:scale-95 transition flex items-center justify-center">▶</button>
+            <button onClick={handleStart} className="w-28 h-28 rounded-2xl bg-yellow-400 text-gray-900 text-6xl shadow-xl hover:bg-yellow-300 active:scale-95 transition flex items-center justify-center">▶</button>
           )}
           {playbackState === 'playing' && (
             <>
-              <button onClick={pause} className="w-24 h-24 rounded-full bg-white/30 backdrop-blur text-white text-5xl shadow-2xl hover:bg-white/40 active:scale-95 transition flex items-center justify-center border-2 border-white/50">⏸</button>
-              <button onClick={stop} className="w-24 h-24 rounded-full bg-white/30 backdrop-blur text-white text-5xl shadow-2xl hover:bg-white/40 active:scale-95 transition flex items-center justify-center border-2 border-white/50">⏹</button>
+              <button onClick={pause} className="w-24 h-24 rounded-2xl bg-white/20 backdrop-blur text-white text-5xl shadow-xl hover:bg-white/30 active:scale-95 transition flex items-center justify-center border border-white/30">⏸</button>
+              <button onClick={stop} className="w-24 h-24 rounded-2xl bg-white/20 backdrop-blur text-white text-5xl shadow-xl hover:bg-white/30 active:scale-95 transition flex items-center justify-center border border-white/30">⏹</button>
             </>
           )}
           {playbackState === 'paused' && (
             <>
-              <button onClick={handleResume} className="w-24 h-24 rounded-full bg-yellow-400 text-gray-900 text-5xl shadow-2xl hover:bg-yellow-300 active:scale-95 transition flex items-center justify-center">▶</button>
-              <button onClick={stop} className="w-24 h-24 rounded-full bg-white/30 backdrop-blur text-white text-5xl shadow-2xl hover:bg-white/40 active:scale-95 transition flex items-center justify-center border-2 border-white/50">⏹</button>
+              <button onClick={handleResume} className="w-24 h-24 rounded-2xl bg-yellow-400 text-gray-900 text-5xl shadow-xl hover:bg-yellow-300 active:scale-95 transition flex items-center justify-center">▶</button>
+              <button onClick={stop} className="w-24 h-24 rounded-2xl bg-white/20 backdrop-blur text-white text-5xl shadow-xl hover:bg-white/30 active:scale-95 transition flex items-center justify-center border border-white/30">⏹</button>
             </>
           )}
         </div>

@@ -46,11 +46,11 @@ export class Beeper {
     this.currentBar = null;
   }
 
-  start() {
+  start(startBar = 0) {
     this.stop();
     this.nextStepTime = this.audioCtx.currentTime;
     this.step = 0;
-    this.currentBar = 0;
+    this.currentBar = startBar;
     this.scheduleBeeps();
     this.intervalId = setInterval(() => this.scheduleBeeps(), this.interval);
   }
