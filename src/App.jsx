@@ -22,6 +22,7 @@ function App() {
   const [prerollBars, setPrerollBars] = useState(() => Number(localStorage.getItem('prerollBars')) || DEFAULT_PREROLL_BARS);
   const [estimatedRuntime, setEstimatedRuntime] = useState('0:00');
   const [resumeFromRepetition, setResumeFromRepetition] = useState(() => localStorage.getItem('resumeFromRepetition') === 'true');
+  const [showHelp, setShowHelp] = useState(null);
 
   const { playbackState, currentBeat, isLastBar, currentExercise, currentRepetition, currentBar, isPreroll, start, stop, pause, resume } = useMetronome();
 
@@ -55,6 +56,19 @@ function App() {
 
   const handleResume = () => {
     resume(resumeFromRepetition);
+  };
+
+  const helpTexts = {
+    tempo: "Speed of the metronome in beats per minute (BPM)",
+    exercises: "Total number of exercises to practice",
+    reps: "Number of repetitions for each exercise",
+    beats: "Number of beats per bar",
+    start: "Starting exercise number",
+    bars: "Number of bars per repetition",
+    subs: "Subdivisions per beat (1=quarter, 2=eighth, 4=sixteenth)",
+    preroll: "Number of preparation bars before each exercise",
+    resumeFromRep: "When paused: resume from current repetition (checked) or exercise start (unchecked)",
+    pattern: "Accent pattern: A=High, B=Medium, C=Low, D=Silent"
   };
 
   const isPlaying = playbackState === 'playing';
@@ -176,21 +190,37 @@ function App() {
           {/* Main Controls */}
           <div className="grid grid-cols-4 gap-4 mb-4">
             <div className="bg-white/10 rounded-xl p-3 backdrop-blur">
-              <label className="text-white/70 text-xs block mb-1">Tempo</label>
+              <div className="flex items-center gap-1 mb-1">
+                <label className="text-white/70 text-xs">Tempo</label>
+                <button onClick={() => setShowHelp(showHelp === 'tempo' ? null : 'tempo')} className="text-white/50 hover:text-white/80 text-xs">ⓘ</button>
+              </div>
+              {showHelp === 'tempo' && <div className="text-xs text-yellow-300 mb-1">{helpTexts.tempo}</div>}
               <input type="number" min={TEMPO_MIN} max={TEMPO_MAX} value={tempo} onChange={(e) => setTempo(Number(e.target.value))} className="w-full bg-white/20 border border-white/30 rounded-lg p-2 text-white text-center text-lg font-bold focus:outline-none focus:ring-2 focus:ring-yellow-400" disabled={playbackState !== 'idle'} />
             </div>
             <div className="bg-white/10 rounded-xl p-3 backdrop-blur">
-              <label className="text-white/70 text-xs block mb-1">Exercises</label>
+              <div className="flex items-center gap-1 mb-1">
+                <label className="text-white/70 text-xs">Exercises</label>
+                <button onClick={() => setShowHelp(showHelp === 'exercises' ? null : 'exercises')} className="text-white/50 hover:text-white/80 text-xs">ⓘ</button>
+              </div>
+              {showHelp === 'exercises' && <div className="text-xs text-yellow-300 mb-1">{helpTexts.exercises}</div>}
               <input type="number" min={EXERCISES_MIN} max={EXERCISES_MAX} value={exercises} onChange={(e) => setExercises(Number(e.target.value))} className="w-full bg-white/20 border border-white/30 rounded-lg p-2 text-white text-center text-lg font-bold focus:outline-none focus:ring-2 focus:ring-yellow-400" disabled={playbackState !== 'idle'} />
             </div>
             <div className="bg-white/10 rounded-xl p-3 backdrop-blur">
-              <label className="text-white/70 text-xs block mb-1">Reps</label>
+              <div className="flex items-center gap-1 mb-1">
+                <label className="text-white/70 text-xs">Reps</label>
+                <button onClick={() => setShowHelp(showHelp === 'reps' ? null : 'reps')} className="text-white/50 hover:text-white/80 text-xs">ⓘ</button>
+              </div>
+              {showHelp === 'reps' && <div className="text-xs text-yellow-300 mb-1">{helpTexts.reps}</div>}
               <select value={repetitions} onChange={(e) => setRepetitions(Number(e.target.value))} className="w-full bg-white/20 border border-white/30 rounded-lg p-2 text-white text-center text-lg font-bold focus:outline-none focus:ring-2 focus:ring-yellow-400" disabled={playbackState !== 'idle'}>
                 {REPETITIONS_OPTIONS.map(opt => <option key={opt} value={opt}>{opt}</option>)}
               </select>
             </div>
             <div className="bg-white/10 rounded-xl p-3 backdrop-blur">
-              <label className="text-white/70 text-xs block mb-1">Beats</label>
+              <div className="flex items-center gap-1 mb-1">
+                <label className="text-white/70 text-xs">Beats</label>
+                <button onClick={() => setShowHelp(showHelp === 'beats' ? null : 'beats')} className="text-white/50 hover:text-white/80 text-xs">ⓘ</button>
+              </div>
+              {showHelp === 'beats' && <div className="text-xs text-yellow-300 mb-1">{helpTexts.beats}</div>}
               <input type="number" min={BEATS_MIN} max={BEATS_MAX} value={beats} onChange={(e) => setBeats(Number(e.target.value))} className="w-full bg-white/20 border border-white/30 rounded-lg p-2 text-white text-center text-lg font-bold focus:outline-none focus:ring-2 focus:ring-yellow-400" disabled={playbackState !== 'idle'} />
             </div>
           </div>
@@ -198,23 +228,39 @@ function App() {
           {/* Secondary Controls */}
           <div className="grid grid-cols-5 gap-3 mb-4">
             <div className="bg-white/10 rounded-lg p-2 backdrop-blur">
-              <label className="text-white/70 text-xs block mb-1">Start</label>
+              <div className="flex items-center gap-1 mb-1">
+                <label className="text-white/70 text-xs">Start</label>
+                <button onClick={() => setShowHelp(showHelp === 'start' ? null : 'start')} className="text-white/50 hover:text-white/80 text-xs">ⓘ</button>
+              </div>
+              {showHelp === 'start' && <div className="text-xs text-yellow-300 mb-1">{helpTexts.start}</div>}
               <input type="number" min={START_EXERCISE_MIN} max={START_EXERCISE_MAX} value={startExercise} onChange={(e) => setStartExercise(Number(e.target.value))} className="w-full bg-white/20 border border-white/30 rounded p-1 text-white text-center text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400" disabled={playbackState !== 'idle'} />
             </div>
             <div className="bg-white/10 rounded-lg p-2 backdrop-blur">
-              <label className="text-white/70 text-xs block mb-1">Bars</label>
+              <div className="flex items-center gap-1 mb-1">
+                <label className="text-white/70 text-xs">Bars</label>
+                <button onClick={() => setShowHelp(showHelp === 'bars' ? null : 'bars')} className="text-white/50 hover:text-white/80 text-xs">ⓘ</button>
+              </div>
+              {showHelp === 'bars' && <div className="text-xs text-yellow-300 mb-1">{helpTexts.bars}</div>}
               <select value={bars} onChange={(e) => setBars(Number(e.target.value))} className="w-full bg-white/20 border border-white/30 rounded p-1 text-white text-center text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400" disabled={playbackState !== 'idle'}>
                 {BARS_OPTIONS.map(opt => <option key={opt} value={opt}>{opt}</option>)}
               </select>
             </div>
             <div className="bg-white/10 rounded-lg p-2 backdrop-blur">
-              <label className="text-white/70 text-xs block mb-1">Subs</label>
+              <div className="flex items-center gap-1 mb-1">
+                <label className="text-white/70 text-xs">Subs</label>
+                <button onClick={() => setShowHelp(showHelp === 'subs' ? null : 'subs')} className="text-white/50 hover:text-white/80 text-xs">ⓘ</button>
+              </div>
+              {showHelp === 'subs' && <div className="text-xs text-yellow-300 mb-1">{helpTexts.subs}</div>}
               <select value={subdivisions} onChange={(e) => setSubdivisions(Number(e.target.value))} className="w-full bg-white/20 border border-white/30 rounded p-1 text-white text-center text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400" disabled={playbackState !== 'idle'}>
                 {SUBDIVISIONS_OPTIONS.map(opt => <option key={opt} value={opt}>{opt}</option>)}
               </select>
             </div>
             <div className="bg-white/10 rounded-lg p-2 backdrop-blur">
-              <label className="text-white/70 text-xs block mb-1">Preroll</label>
+              <div className="flex items-center gap-1 mb-1">
+                <label className="text-white/70 text-xs">Preroll</label>
+                <button onClick={() => setShowHelp(showHelp === 'preroll' ? null : 'preroll')} className="text-white/50 hover:text-white/80 text-xs">ⓘ</button>
+              </div>
+              {showHelp === 'preroll' && <div className="text-xs text-yellow-300 mb-1">{helpTexts.preroll}</div>}
               <select value={prerollBars} onChange={(e) => setPrerollBars(Number(e.target.value))} className="w-full bg-white/20 border border-white/30 rounded p-1 text-white text-center text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400" disabled={playbackState !== 'idle'}>
                 {PREROLL_BARS_OPTIONS.map(opt => <option key={opt} value={opt}>{opt}</option>)}
               </select>
@@ -223,13 +269,19 @@ function App() {
               <label className="flex items-center gap-2 cursor-pointer">
                 <input type="checkbox" checked={resumeFromRepetition} onChange={(e) => setResumeFromRepetition(e.target.checked)} className="w-4 h-4" disabled={playbackState !== 'idle'} />
                 <span className="text-white/70 text-xs">Resume from rep</span>
+                <button onClick={() => setShowHelp(showHelp === 'resumeFromRep' ? null : 'resumeFromRep')} className="text-white/50 hover:text-white/80 text-xs">ⓘ</button>
               </label>
+              {showHelp === 'resumeFromRep' && <div className="absolute bg-black/90 text-xs text-yellow-300 p-2 rounded mt-16 max-w-xs">{helpTexts.resumeFromRep}</div>}
             </div>
           </div>
 
           {/* Pattern */}
           <div className="bg-white/10 rounded-lg p-3 backdrop-blur">
-            <label className="text-white/70 text-xs block mb-1">Pattern</label>
+            <div className="flex items-center gap-1 mb-1">
+              <label className="text-white/70 text-xs">Pattern</label>
+              <button onClick={() => setShowHelp(showHelp === 'pattern' ? null : 'pattern')} className="text-white/50 hover:text-white/80 text-xs">ⓘ</button>
+            </div>
+            {showHelp === 'pattern' && <div className="text-xs text-yellow-300 mb-1">{helpTexts.pattern}</div>}
             <input type="text" value={pattern} onChange={(e) => setPattern(e.target.value)} className="w-full bg-white/20 border border-white/30 rounded-lg p-2 text-white font-mono text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400" disabled={playbackState !== 'idle'} />
           </div>
         </div>
