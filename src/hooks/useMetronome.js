@@ -3,6 +3,7 @@ import { Beeper, Queue } from '../audio/Beeper';
 import { DecayingSawtoothClick } from '../audio/AudioClicks';
 import { HIGH, MEDIUM, LOW, SILENT, HIGH_FREQUENCY, MEDIUM_FREQUENCY, LOW_FREQUENCY, HIGH_VOLUME, MEDIUM_VOLUME, LOW_VOLUME } from '../audio/constants';
 import audioContextManager from '../audio/AudioContext';
+import { SpeechSynthesis } from '../audio/SpeechSynthesis';
 
 export function useMetronome() {
   const [playbackState, setPlaybackState] = useState('idle');
@@ -17,6 +18,8 @@ export function useMetronome() {
   const queueRef = useRef(new Queue());
   const animationFrameRef = useRef(null);
   const configRef = useRef(null);
+  const speechRef = useRef(new SpeechSynthesis());
+  const lastAnnouncedRepRef = useRef(-1);
 
   const start = (config) => {
     configRef.current = config;
@@ -60,6 +63,7 @@ export function useMetronome() {
     setCurrentRepetition(0);
     setCurrentBar(0);
     setIsPreroll(false);
+    lastAnnouncedRepRef.current = -1;
   };
 
   const pause = () => {
@@ -70,6 +74,32 @@ export function useMetronome() {
       cancelAnimationFrame(animationFrameRef.current);
     }
     setPlaybackState('paused');
+  };
+
+  const resume = () => {
+    if (playbackState !== 'paused' || !configRef.current) return;
+
+    const audioCtx = audioContextManager.getContext();
+    const clicks = {
+      [HIGH]: DecayingSawtoothClick.Builder(HIGH_FREQUENCY, HIGH_VOLUME),
+      [MEDIUM]: DecayingSawtoothClick.Builder(MEDIUM_FREQUENCY, MEDIUM_VOLUME),
+      [LOW]: DecayingSawtoothClick.Builder(LOW_FREQUENCY, LOW_VOLUME),
+      [SILENT]: null
+    };
+
+    beeperRef.current = new Beeper({
+      audioCtx,
+      tempo: configRef.current.tempo,
+      beats: configRef.current.beats,
+      subdivisions: configRef.current.subdivisions,
+      pattern: configRef.current.pattern,
+      queue: queueRef.current,
+      clicks
+    });
+
+    beeperRef.current.start();
+    setPlaybackState('playing');
+    updateProgress();
   };
 
   const updateProgress = () => {
@@ -100,8 +130,16 @@ export function useMetronome() {
           setCurrentRepetition(repetition);
           setCurrentBar(bar);
 
-          const totalBars = exercises * repetitions * bars;
-          setIsLastBar(barAfterPreroll === totalBars - 1);
+          // Flash on last bar of each exercise
+          const isLastBarOfExercise = bar === bars - 1 && repetition === repetitions - 1;
+          setIsLastBar(isLastBarOfExercise);
+
+          // Vocal cue for last 3 reps
+          const repsRemaining = repetitions - repetition;
+          if (repsRemaining <= 3 && repsRemaining > 0 && bar === 0 && repetition !== lastAnnouncedRepRef.current) {
+            speechRef.current.announceLastRepetitions(repsRemaining);
+            lastAnnouncedRepRef.current = repetition;
+          }
         }
       }
     }
@@ -115,5 +153,5 @@ export function useMetronome() {
     };
   }, []);
 
-  return { playbackState, currentBeat, isLastBar, currentExercise, currentRepetition, currentBar, isPreroll, start, stop, pause };
+  return { playbackState, currentBeat, isLastBar, currentExercise, currentRepetition, currentBar, isPreroll, start, stop, pause, resume };
 }

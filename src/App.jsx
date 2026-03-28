@@ -22,7 +22,7 @@ function App() {
   const [prerollBars, setPrerollBars] = useState(DEFAULT_PREROLL_BARS);
   const [estimatedRuntime, setEstimatedRuntime] = useState('0:00');
 
-  const { playbackState, currentBeat, isLastBar, currentExercise, currentRepetition, currentBar, isPreroll, start, stop, pause } = useMetronome();
+  const { playbackState, currentBeat, isLastBar, currentExercise, currentRepetition, currentBar, isPreroll, start, stop, pause, resume } = useMetronome();
 
   useEffect(() => {
     const totalBars = exercises * repetitions * bars;
@@ -39,6 +39,10 @@ function App() {
     start({ tempo, beats, subdivisions, pattern, startExercise, exercises, repetitions, bars, prerollBars });
   };
 
+  const handleResume = () => {
+    resume();
+  };
+
   const isPlaying = playbackState === 'playing';
   const isIdle = playbackState === 'idle';
 
@@ -51,25 +55,34 @@ function App() {
         <div className="bg-black/30 backdrop-blur p-6 text-white text-center">
           {isPreroll ? (
             <div>
-              <div className="text-6xl font-bold mb-2">GET READY</div>
-              <div className="text-3xl">Exercise {currentExercise}</div>
+              <div className="text-7xl font-bold mb-2">GET READY</div>
+              <div className="text-4xl">Exercise {currentExercise}</div>
             </div>
           ) : (
-            <div className="grid grid-cols-3 gap-4">
-              <div>
-                <div className="text-sm opacity-70">EXERCISE</div>
-                <div className="text-5xl font-bold">{currentExercise}</div>
-                <div className="text-lg opacity-70">of {startExercise + exercises - 1}</div>
+            <div>
+              <div className="grid grid-cols-3 gap-6 mb-4">
+                <div>
+                  <div className="text-sm opacity-70">EXERCISE</div>
+                  <div className="text-6xl font-bold">{currentExercise}</div>
+                  <div className="text-xl opacity-70">of {startExercise + exercises - 1}</div>
+                </div>
+                <div>
+                  <div className="text-sm opacity-70">REP</div>
+                  <div className="text-6xl font-bold">{currentRepetition + 1}</div>
+                  <div className="text-xl opacity-70">of {repetitions}</div>
+                </div>
+                <div>
+                  <div className="text-sm opacity-70">BAR</div>
+                  <div className="text-6xl font-bold">{currentBar + 1}</div>
+                  <div className="text-xl opacity-70">of {bars}</div>
+                </div>
               </div>
-              <div>
-                <div className="text-sm opacity-70">REP</div>
-                <div className="text-5xl font-bold">{currentRepetition + 1}</div>
-                <div className="text-lg opacity-70">of {repetitions}</div>
-              </div>
-              <div>
-                <div className="text-sm opacity-70">BAR</div>
-                <div className="text-5xl font-bold">{currentBar + 1}</div>
-                <div className="text-lg opacity-70">of {bars}</div>
+              {/* Progress Bar */}
+              <div className="w-full bg-white/20 rounded-full h-4">
+                <div
+                  className="bg-yellow-400 h-4 rounded-full transition-all duration-300"
+                  style={{ width: `${((currentRepetition * bars + currentBar + 1) / (repetitions * bars)) * 100}%` }}
+                />
               </div>
             </div>
           )}
@@ -88,7 +101,7 @@ function App() {
         )}
 
         {/* Beat Indicators */}
-        <div className="flex gap-3 flex-wrap justify-center mb-8">
+        <div className="flex gap-4 flex-wrap justify-center mb-8">
           {[...Array(beats)].map((_, i) => (
             <div
               key={i}
@@ -116,7 +129,7 @@ function App() {
           )}
           {playbackState === 'paused' && (
             <>
-              <button onClick={handleStart} className="w-24 h-24 rounded-full bg-white text-green-600 text-5xl shadow-2xl active:scale-95 transition">▶</button>
+              <button onClick={handleResume} className="w-24 h-24 rounded-full bg-white text-green-600 text-5xl shadow-2xl active:scale-95 transition">▶</button>
               <button onClick={stop} className="w-24 h-24 rounded-full bg-red-500 text-white text-5xl shadow-2xl active:scale-95 transition">⏹</button>
             </>
           )}
