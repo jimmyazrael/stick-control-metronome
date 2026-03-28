@@ -43,112 +43,133 @@ function App() {
   const isIdle = playbackState === 'idle';
 
   return (
-    <div className={`min-h-screen flex flex-col p-4 transition-colors duration-300 ${
+    <div className={`min-h-screen flex flex-col transition-colors duration-300 ${
       isLastBar && isPlaying ? 'animate-flash' : 'bg-green-500 dark:bg-gray-900'
     }`}>
-      {/* Header */}
-      <div className="flex justify-between items-center mb-4">
-        <h1 className="text-2xl font-bold text-white">Stick Control</h1>
-        <div className="text-white text-sm">Runtime: {estimatedRuntime}</div>
-      </div>
-
-      {/* Progress Display */}
+      {/* Progress Display - Large and Prominent */}
       {playbackState !== 'idle' && (
-        <div className="bg-white/20 backdrop-blur rounded-lg p-3 mb-4 text-white text-center">
+        <div className="bg-black/30 backdrop-blur p-6 text-white text-center">
           {isPreroll ? (
-            <div className="text-lg font-bold">Preroll → Exercise {currentExercise}</div>
+            <div>
+              <div className="text-6xl font-bold mb-2">GET READY</div>
+              <div className="text-3xl">Exercise {currentExercise}</div>
+            </div>
           ) : (
-            <div className="flex justify-around text-sm">
-              <div><span className="font-bold">Exercise:</span> {currentExercise} of {startExercise + exercises - 1}</div>
-              <div><span className="font-bold">Rep:</span> {currentRepetition + 1} of {repetitions}</div>
-              <div><span className="font-bold">Bar:</span> {currentBar + 1} of {bars}</div>
+            <div className="grid grid-cols-3 gap-4">
+              <div>
+                <div className="text-sm opacity-70">EXERCISE</div>
+                <div className="text-5xl font-bold">{currentExercise}</div>
+                <div className="text-lg opacity-70">of {startExercise + exercises - 1}</div>
+              </div>
+              <div>
+                <div className="text-sm opacity-70">REP</div>
+                <div className="text-5xl font-bold">{currentRepetition + 1}</div>
+                <div className="text-lg opacity-70">of {repetitions}</div>
+              </div>
+              <div>
+                <div className="text-sm opacity-70">BAR</div>
+                <div className="text-5xl font-bold">{currentBar + 1}</div>
+                <div className="text-lg opacity-70">of {bars}</div>
+              </div>
             </div>
           )}
         </div>
       )}
 
-      {/* Beat Indicators */}
-      <div className="flex gap-3 flex-wrap justify-center mb-6">
-        {[...Array(beats)].map((_, i) => (
-          <div
-            key={i}
-            className={`w-24 h-24 rounded-full border-8 flex items-center justify-center text-3xl font-bold transition-all ${
-              currentBeat === i && playbackState === 'playing'
-                ? 'bg-white text-green-600 scale-110 shadow-2xl border-white'
-                : 'border-white/60 text-white/80 bg-green-600/30'
-            }`}
-          >
-            {i + 1}
-          </div>
-        ))}
-      </div>
-
-      {/* Transport Controls */}
-      <div className="flex gap-4 justify-center mb-6">
+      {/* Main Content */}
+      <div className="flex-1 flex flex-col justify-center p-4">
+        {/* Tempo Display */}
         {playbackState === 'idle' && (
-          <button onClick={handleStart} className="w-24 h-24 rounded-full bg-white text-green-500 text-5xl shadow-xl">▶</button>
+          <div className="text-center mb-6">
+            <div className="text-8xl font-bold text-white">{tempo}</div>
+            <div className="text-2xl text-white/70">BPM</div>
+            <div className="text-lg text-white/60 mt-2">Runtime: {estimatedRuntime}</div>
+          </div>
         )}
-        {playbackState === 'playing' && (
-          <>
-            <button onClick={pause} className="w-20 h-20 rounded-full bg-yellow-400 text-white text-4xl shadow-xl">⏸</button>
-            <button onClick={stop} className="w-20 h-20 rounded-full bg-red-500 text-white text-4xl shadow-xl">⏹</button>
-          </>
-        )}
-        {playbackState === 'paused' && (
-          <>
-            <button onClick={handleStart} className="w-20 h-20 rounded-full bg-white text-green-500 text-4xl shadow-xl">▶</button>
-            <button onClick={stop} className="w-20 h-20 rounded-full bg-red-500 text-white text-4xl shadow-xl">⏹</button>
-          </>
-        )}
+
+        {/* Beat Indicators */}
+        <div className="flex gap-3 flex-wrap justify-center mb-8">
+          {[...Array(beats)].map((_, i) => (
+            <div
+              key={i}
+              className={`w-28 h-28 rounded-full flex items-center justify-center text-4xl font-bold transition-all duration-150 ${
+                currentBeat === i && playbackState === 'playing'
+                  ? 'bg-yellow-400 text-gray-900 scale-125 shadow-2xl ring-8 ring-yellow-300'
+                  : 'bg-white/20 text-white/60 border-4 border-white/40'
+              }`}
+            >
+              {i + 1}
+            </div>
+          ))}
+        </div>
+
+        {/* Transport Controls */}
+        <div className="flex gap-6 justify-center mb-8">
+          {playbackState === 'idle' && (
+            <button onClick={handleStart} className="w-28 h-28 rounded-full bg-white text-green-600 text-6xl shadow-2xl active:scale-95 transition">▶</button>
+          )}
+          {playbackState === 'playing' && (
+            <>
+              <button onClick={pause} className="w-24 h-24 rounded-full bg-yellow-400 text-gray-900 text-5xl shadow-2xl active:scale-95 transition">⏸</button>
+              <button onClick={stop} className="w-24 h-24 rounded-full bg-red-500 text-white text-5xl shadow-2xl active:scale-95 transition">⏹</button>
+            </>
+          )}
+          {playbackState === 'paused' && (
+            <>
+              <button onClick={handleStart} className="w-24 h-24 rounded-full bg-white text-green-600 text-5xl shadow-2xl active:scale-95 transition">▶</button>
+              <button onClick={stop} className="w-24 h-24 rounded-full bg-red-500 text-white text-5xl shadow-2xl active:scale-95 transition">⏹</button>
+            </>
+          )}
+        </div>
       </div>
 
-      {/* Controls */}
-      <div className="bg-white/10 backdrop-blur rounded-lg p-4 space-y-3 max-w-2xl mx-auto w-full">
-        <div className="grid grid-cols-2 gap-3">
+      {/* Controls - Compact and Less Prominent */}
+      <div className="bg-black/20 backdrop-blur p-4">
+        <div className="max-w-4xl mx-auto grid grid-cols-4 gap-2 text-xs">
           <div>
-            <label className="text-white text-sm">Tempo</label>
-            <input type="number" min={TEMPO_MIN} max={TEMPO_MAX} value={tempo} onChange={(e) => setTempo(Number(e.target.value))} className="w-full p-2 rounded" disabled={playbackState !== 'idle'} />
+            <label className="text-white/60">Tempo</label>
+            <input type="number" min={TEMPO_MIN} max={TEMPO_MAX} value={tempo} onChange={(e) => setTempo(Number(e.target.value))} className="w-full p-2 rounded text-sm" disabled={playbackState !== 'idle'} />
           </div>
           <div>
-            <label className="text-white text-sm">Start</label>
-            <input type="number" min={START_EXERCISE_MIN} max={START_EXERCISE_MAX} value={startExercise} onChange={(e) => setStartExercise(Number(e.target.value))} className="w-full p-2 rounded" disabled={playbackState !== 'idle'} />
+            <label className="text-white/60">Start</label>
+            <input type="number" min={START_EXERCISE_MIN} max={START_EXERCISE_MAX} value={startExercise} onChange={(e) => setStartExercise(Number(e.target.value))} className="w-full p-2 rounded text-sm" disabled={playbackState !== 'idle'} />
           </div>
           <div>
-            <label className="text-white text-sm">Exercises</label>
-            <input type="number" min={EXERCISES_MIN} max={EXERCISES_MAX} value={exercises} onChange={(e) => setExercises(Number(e.target.value))} className="w-full p-2 rounded" disabled={playbackState !== 'idle'} />
+            <label className="text-white/60">Exercises</label>
+            <input type="number" min={EXERCISES_MIN} max={EXERCISES_MAX} value={exercises} onChange={(e) => setExercises(Number(e.target.value))} className="w-full p-2 rounded text-sm" disabled={playbackState !== 'idle'} />
           </div>
           <div>
-            <label className="text-white text-sm">Reps</label>
-            <select value={repetitions} onChange={(e) => setRepetitions(Number(e.target.value))} className="w-full p-2 rounded" disabled={playbackState !== 'idle'}>
+            <label className="text-white/60">Reps</label>
+            <select value={repetitions} onChange={(e) => setRepetitions(Number(e.target.value))} className="w-full p-2 rounded text-sm" disabled={playbackState !== 'idle'}>
               {REPETITIONS_OPTIONS.map(opt => <option key={opt} value={opt}>{opt}</option>)}
             </select>
           </div>
           <div>
-            <label className="text-white text-sm">Bars</label>
-            <select value={bars} onChange={(e) => setBars(Number(e.target.value))} className="w-full p-2 rounded" disabled={playbackState !== 'idle'}>
+            <label className="text-white/60">Bars</label>
+            <select value={bars} onChange={(e) => setBars(Number(e.target.value))} className="w-full p-2 rounded text-sm" disabled={playbackState !== 'idle'}>
               {BARS_OPTIONS.map(opt => <option key={opt} value={opt}>{opt}</option>)}
             </select>
           </div>
           <div>
-            <label className="text-white text-sm">Beats</label>
-            <input type="number" min={BEATS_MIN} max={BEATS_MAX} value={beats} onChange={(e) => setBeats(Number(e.target.value))} className="w-full p-2 rounded" disabled={playbackState !== 'idle'} />
+            <label className="text-white/60">Beats</label>
+            <input type="number" min={BEATS_MIN} max={BEATS_MAX} value={beats} onChange={(e) => setBeats(Number(e.target.value))} className="w-full p-2 rounded text-sm" disabled={playbackState !== 'idle'} />
           </div>
           <div>
-            <label className="text-white text-sm">Subs</label>
-            <select value={subdivisions} onChange={(e) => setSubdivisions(Number(e.target.value))} className="w-full p-2 rounded" disabled={playbackState !== 'idle'}>
+            <label className="text-white/60">Subs</label>
+            <select value={subdivisions} onChange={(e) => setSubdivisions(Number(e.target.value))} className="w-full p-2 rounded text-sm" disabled={playbackState !== 'idle'}>
               {SUBDIVISIONS_OPTIONS.map(opt => <option key={opt} value={opt}>{opt}</option>)}
             </select>
           </div>
           <div>
-            <label className="text-white text-sm">Preroll</label>
-            <select value={prerollBars} onChange={(e) => setPrerollBars(Number(e.target.value))} className="w-full p-2 rounded" disabled={playbackState !== 'idle'}>
+            <label className="text-white/60">Preroll</label>
+            <select value={prerollBars} onChange={(e) => setPrerollBars(Number(e.target.value))} className="w-full p-2 rounded text-sm" disabled={playbackState !== 'idle'}>
               {PREROLL_BARS_OPTIONS.map(opt => <option key={opt} value={opt}>{opt}</option>)}
             </select>
           </div>
         </div>
-        <div>
-          <label className="text-white text-sm">Pattern</label>
-          <input type="text" value={pattern} onChange={(e) => setPattern(e.target.value)} className="w-full p-2 rounded font-mono" disabled={playbackState !== 'idle'} />
+        <div className="max-w-4xl mx-auto mt-2">
+          <label className="text-white/60 text-xs">Pattern</label>
+          <input type="text" value={pattern} onChange={(e) => setPattern(e.target.value)} className="w-full p-2 rounded font-mono text-sm" disabled={playbackState !== 'idle'} />
         </div>
       </div>
     </div>
