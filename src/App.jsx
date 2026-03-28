@@ -22,7 +22,7 @@ function App() {
   const [prerollBars, setPrerollBars] = useState(DEFAULT_PREROLL_BARS);
   const [estimatedRuntime, setEstimatedRuntime] = useState('0:00');
 
-  const { playbackState, currentBeat, isLastBar, start, stop, pause } = useMetronome();
+  const { playbackState, currentBeat, isLastBar, currentExercise, currentRepetition, currentBar, isPreroll, start, stop, pause } = useMetronome();
 
   useEffect(() => {
     const totalBars = exercises * repetitions * bars;
@@ -36,7 +36,7 @@ function App() {
   }, [beats, subdivisions]);
 
   const handleStart = () => {
-    start({ tempo, beats, subdivisions, pattern, exercises, repetitions, bars });
+    start({ tempo, beats, subdivisions, pattern, startExercise, exercises, repetitions, bars, prerollBars });
   };
 
   const isPlaying = playbackState === 'playing';
@@ -51,6 +51,21 @@ function App() {
         <h1 className="text-2xl font-bold text-white">Stick Control</h1>
         <div className="text-white text-sm">Runtime: {estimatedRuntime}</div>
       </div>
+
+      {/* Progress Display */}
+      {playbackState !== 'idle' && (
+        <div className="bg-white/20 backdrop-blur rounded-lg p-3 mb-4 text-white text-center">
+          {isPreroll ? (
+            <div className="text-lg font-bold">Preroll → Exercise {currentExercise}</div>
+          ) : (
+            <div className="flex justify-around text-sm">
+              <div><span className="font-bold">Exercise:</span> {currentExercise} of {startExercise + exercises - 1}</div>
+              <div><span className="font-bold">Rep:</span> {currentRepetition + 1} of {repetitions}</div>
+              <div><span className="font-bold">Bar:</span> {currentBar + 1} of {bars}</div>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Beat Indicators */}
       <div className="flex gap-3 flex-wrap justify-center mb-6">

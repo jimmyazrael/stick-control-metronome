@@ -8,6 +8,10 @@ export function useMetronome() {
   const [playbackState, setPlaybackState] = useState('idle');
   const [currentBeat, setCurrentBeat] = useState(0);
   const [isLastBar, setIsLastBar] = useState(false);
+  const [currentExercise, setCurrentExercise] = useState(0);
+  const [currentRepetition, setCurrentRepetition] = useState(0);
+  const [currentBar, setCurrentBar] = useState(0);
+  const [isPreroll, setIsPreroll] = useState(false);
 
   const beeperRef = useRef(null);
   const queueRef = useRef(new Queue());
@@ -51,6 +55,11 @@ export function useMetronome() {
     queueRef.current.clear();
     setPlaybackState('idle');
     setCurrentBeat(0);
+    setIsLastBar(false);
+    setCurrentExercise(0);
+    setCurrentRepetition(0);
+    setCurrentBar(0);
+    setIsPreroll(false);
   };
 
   const pause = () => {
@@ -70,10 +79,30 @@ export function useMetronome() {
       setCurrentBeat(note.beat);
 
       if (configRef.current) {
-        const { exercises, repetitions, bars } = configRef.current;
-        const totalBars = exercises * repetitions * bars;
-        const isLast = note.currentBar === totalBars - 1;
-        setIsLastBar(isLast);
+        const { startExercise, exercises, repetitions, bars, prerollBars } = configRef.current;
+        const totalPrerollBars = prerollBars || 0;
+        const overallBar = note.currentBar;
+
+        if (overallBar < totalPrerollBars) {
+          setIsPreroll(true);
+          setCurrentBar(overallBar);
+          setIsLastBar(overallBar === totalPrerollBars - 1);
+        } else {
+          setIsPreroll(false);
+          const barAfterPreroll = overallBar - totalPrerollBars;
+          const barsPerExercise = bars * repetitions;
+          const exercise = Math.floor(barAfterPreroll / barsPerExercise);
+          const barInExercise = barAfterPreroll % barsPerExercise;
+          const repetition = Math.floor(barInExercise / bars);
+          const bar = barInExercise % bars;
+
+          setCurrentExercise(exercise + startExercise);
+          setCurrentRepetition(repetition);
+          setCurrentBar(bar);
+
+          const totalBars = exercises * repetitions * bars;
+          setIsLastBar(barAfterPreroll === totalBars - 1);
+        }
       }
     }
     animationFrameRef.current = requestAnimationFrame(updateProgress);
@@ -86,5 +115,5 @@ export function useMetronome() {
     };
   }, []);
 
-  return { playbackState, currentBeat, isLastBar, start, stop, pause };
+  return { playbackState, currentBeat, isLastBar, currentExercise, currentRepetition, currentBar, isPreroll, start, stop, pause };
 }
