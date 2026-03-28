@@ -9,10 +9,12 @@ A modern, touch-friendly metronome web app designed for practicing exercises fro
 - 🎵 **Precise timing** - Web Audio API for accurate beat scheduling
 - 📱 **Touch-friendly UI** - Large buttons and responsive design optimized for mobile
 - 🔄 **Pause/Resume** - Pause mid-practice and resume from repetition or exercise start
-- 🗣️ **Vocal cues** - Announces last 3 repetitions of each exercise
+- 🗣️ **Vocal cues** - Announces last 3 repetitions of each exercise (3, 2, 1)
 - 📊 **Progress tracking** - Real-time display of exercise, repetition, and bar
 - 🎨 **Visual feedback** - Screen flashing on last bar, highlighted beat indicators
 - 💾 **Settings persistence** - All configurations saved across sessions
+- 📋 **Preset management** - Save, load, rename, and delete custom presets
+- ❓ **Contextual help** - Help icons explain each setting
 - 🌙 **Dark mode** - Automatic dark theme support
 
 ## Tech Stack

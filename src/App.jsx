@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useMetronome } from './hooks/useMetronome';
+import { usePresets } from './hooks/usePresets';
 import { makeDefaultPattern } from './utils/patterns';
 import { formatElapsed } from './utils/formatting';
 import {
@@ -25,6 +26,7 @@ function App() {
   const [showHelp, setShowHelp] = useState(null);
 
   const { playbackState, currentBeat, isLastBar, currentExercise, currentRepetition, currentBar, isPreroll, start, stop, pause, resume } = useMetronome();
+  const { presets, savePreset, deletePreset, renamePreset, loadPreset } = usePresets();
 
   useEffect(() => {
     const totalBars = exercises * repetitions * bars;
@@ -68,7 +70,35 @@ function App() {
     subs: "Subdivisions per beat (1=quarter, 2=eighth, 4=sixteenth)",
     preroll: "Number of preparation bars before each exercise",
     resumeFromRep: "When paused: resume from current repetition (checked) or exercise start (unchecked)",
-    pattern: "Accent pattern: A=High, B=Medium, C=Low, D=Silent"
+    pattern: "Accent pattern: A=High, B=Medium, C=Low, D=Silent",
+    presets: "Save current settings as a preset for quick access later"
+  };
+
+  const handleSavePreset = () => {
+    const name = prompt("Enter preset name:");
+    if (name) {
+      savePreset(name, { tempo, startExercise, exercises, repetitions, bars, beats, subdivisions, pattern, prerollBars });
+    }
+  };
+
+  const handleLoadPreset = (id) => {
+    const preset = loadPreset(id);
+    if (preset) {
+      setTempo(preset.tempo);
+      setStartExercise(preset.startExercise);
+      setExercises(preset.exercises);
+      setRepetitions(preset.repetitions);
+      setBars(preset.bars);
+      setBeats(preset.beats);
+      setSubdivisions(preset.subdivisions);
+      setPattern(preset.pattern);
+      setPrerollBars(preset.prerollBars);
+    }
+  };
+
+  const handleRenamePreset = (id) => {
+    const newName = prompt("Enter new name:");
+    if (newName) renamePreset(id, newName);
   };
 
   const isPlaying = playbackState === 'playing';
@@ -276,13 +306,40 @@ function App() {
           </div>
 
           {/* Pattern */}
-          <div className="bg-white/10 rounded-lg p-3 backdrop-blur">
+          <div className="bg-white/10 rounded-lg p-3 backdrop-blur mb-4">
             <div className="flex items-center gap-1 mb-1">
               <label className="text-white/70 text-xs">Pattern</label>
               <button onClick={() => setShowHelp(showHelp === 'pattern' ? null : 'pattern')} className="text-white/50 hover:text-white/80 text-xs">ⓘ</button>
             </div>
             {showHelp === 'pattern' && <div className="text-xs text-yellow-300 mb-1">{helpTexts.pattern}</div>}
             <input type="text" value={pattern} onChange={(e) => setPattern(e.target.value)} className="w-full bg-white/20 border border-white/30 rounded-lg p-2 text-white font-mono text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400" disabled={playbackState !== 'idle'} />
+          </div>
+
+          {/* Presets */}
+          <div className="bg-white/10 rounded-lg p-3 backdrop-blur">
+            <div className="flex items-center gap-1 mb-2">
+              <label className="text-white/70 text-xs">Presets</label>
+              <button onClick={() => setShowHelp(showHelp === 'presets' ? null : 'presets')} className="text-white/50 hover:text-white/80 text-xs">ⓘ</button>
+            </div>
+            {showHelp === 'presets' && <div className="text-xs text-yellow-300 mb-2">{helpTexts.presets}</div>}
+            <div className="flex gap-2">
+              <select onChange={(e) => e.target.value && handleLoadPreset(Number(e.target.value))} className="flex-1 bg-white/20 border border-white/30 rounded-lg p-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400" disabled={playbackState !== 'idle'}>
+                <option value="">Select preset...</option>
+                {presets.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+              </select>
+              <button onClick={handleSavePreset} className="bg-yellow-400 text-gray-900 px-4 py-2 rounded-lg text-sm font-bold hover:bg-yellow-300" disabled={playbackState !== 'idle'}>Save</button>
+            </div>
+            {presets.length > 0 && (
+              <div className="mt-2 space-y-1">
+                {presets.map(p => (
+                  <div key={p.id} className="flex items-center gap-2 text-xs text-white/70">
+                    <span className="flex-1">{p.name}</span>
+                    <button onClick={() => handleRenamePreset(p.id)} className="hover:text-yellow-400">✏️</button>
+                    <button onClick={() => deletePreset(p.id)} className="hover:text-red-400">🗑️</button>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </div>
